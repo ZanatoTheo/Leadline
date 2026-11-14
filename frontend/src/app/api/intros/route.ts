@@ -1,5 +1,6 @@
-import { createIntro, readDb, respondToIntro } from "@/lib/server/db";
+import { createIntro, getFounder, listIntros, respondToIntro } from "@/lib/server/db";
 import { requireUser } from "@/lib/server/auth";
+import { withService } from "@/lib/server/leadline-service";
 import { PASS_REASONS, type Intro } from "@/lib/leadline/match-types";
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -10,22 +11,23 @@ const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice
  *  - investor → intros involving their fund, with founder details; the
  *               founder's email appears only once both sides said yes
  */
-export async function GET() {
+export const GET = withService(async () => {
   const auth = await requireUser();
   if ("error" in auth) return auth.error;
   const { user } = auth;
-  const db = await readDb();
 
   if (user.role === "founder") {
-    const intros = user.founderId ? db.intros.filter((i) => i.founderId === user.founderId) : [];
+    const intros = user.founderId ? await listIntros({ founderId: user.founderId }) : [];
     return Response.json({ intros: intros.sort((a, b) => b.createdAt.localeCompare(a.createdAt)) });
   }
 
-  const intros = db.intros
-    .filter((i) => i.investor === user.investorName)
+  const mine = user.investorName ? await listIntros({ investor: user.investorName }) : [];
+  const ids = [...new Set(mine.map((i) => i.founderId))];
+  const founders = new Map((await Promise.all(ids.map((id) => getFounder(id)))).flatMap((f) => (f ? [[f.id, f]] : [])));
+  const intros = mine
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map((i) => {
-      const f = db.founders.find((x) => x.id === i.founderId);
+      const f = founders.get(i.founderId);
       return {
         ...i,
         founder: f
@@ -34,10 +36,10 @@ export async function GET() {
       };
     });
   return Response.json({ intros });
-}
+});
 
 /** Founders request intros to an investor; investors invite a founder. */
-export async function POST(request: Request) {
+export const POST = withService(async (request: Request) => {
   const auth = await requireUser();
   if ("error" in auth) return auth.error;
   const { user } = auth;
@@ -54,16 +56,15 @@ export async function POST(request: Request) {
 
   if (!user.investorName) return Response.json({ error: "Pick your fund first." }, { status: 400 });
   const founderId = str(body?.founderId, 64);
-  const db = await readDb();
-  const founder = db.founders.find((f) => f.id === founderId);
+  const founder = await getFounder(founderId);
   if (!founder || !founder.discoverable) {
     return Response.json({ error: "This founder isn't open to invites." }, { status: 404 });
   }
   const intro = await createIntro({ founderId, investor: user.investorName, direction: "investor-to-founder", note });
   return Response.json({ intro });
-}
+});
 
-export async function PATCH(request: Request) {
+export const PATCH = withService(async (request: Request) => {
   const auth = await requireUser();
   if ("error" in auth) return auth.error;
   const { user } = auth;
@@ -81,7 +82,7 @@ export async function PATCH(request: Request) {
       : user.investorName
         ? ({ role: "investor", investorName: user.investorName } as const)
         : null;
-  const intro = by ? await respondToIntro(str(body?.id, 64), by, status, passReason) : null;
+  const intro = by ? await respondToIntro(str(body?.id, 64), by, status, passReason, user.id) : null;
   if (!intro) return Response.json({ error: "Intro not found, or not yours to answer." }, { status: 404 });
   return Response.json({ intro });
-}
+});

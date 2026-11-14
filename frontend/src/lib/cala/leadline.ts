@@ -1,5 +1,6 @@
-// Leadline's use of Cala: the questions we ask and how the answers become
-// twins, a shortlist, investor briefs and signals. Server-side only.
+// Leadline's market data and the agent's rankings, turned into twins, a
+// shortlist, investor briefs and signals. Server-side only. Every fact comes
+// from the Leadline database through the local service (never a live Cala call).
 
 import type {
   Deal,
@@ -7,106 +8,76 @@ import type {
   FundClose,
   InvestorBrief,
   RankedInvestor,
+  ShortlistPending,
   ShortlistResponse,
   Signal,
   SignalsResponse,
   TwinsResponse,
 } from "@/lib/leadline/types";
-import { regionLabel, sectorLabel, slugify, stageLabel } from "@/lib/leadline/types";
+import { SECTORS, slugify } from "@/lib/leadline/types";
 import { checkConflict } from "@/lib/leadline/conflicts";
 import { ageDays, rankInvestors } from "@/lib/leadline/rank";
 import { buildTwins } from "@/lib/leadline/twins";
 import { assessTiming } from "@/lib/leadline/timing";
 import { coInvestors, findSynergies, portfolioFromDeals } from "@/lib/leadline/synergy";
-import { calaMode, knowledgeQuery, knowledgeSearch, type QueryHint } from "./client";
-import { toDeals, toFundCloses } from "./normalize";
+import * as service from "@/lib/server/leadline-service";
+import { refreshCalaMode } from "./client";
 
 const LOOKBACK_DAYS = 540; // 18 months of comparable rounds
 const INVESTOR_HISTORY_DAYS = 3 * 365;
 const SIGNAL_DAYS = 30;
-const ENRICH_TOP_N = 12;
 
-const ROUND_COLUMNS =
-  "Return one row per round with columns: company, company_description, industry, round_type, amount, " +
-  "announced_date (YYYY-MM-DD), lead_investors, other_investors.";
+const isSector = (s: string) => SECTORS.some((x) => x.value === s);
 
-// ── Questions sent to Cala ──────────────────────────────────────────────────
-
-const ask = {
-  comparableRounds: (p: FounderProfile, days: number) =>
-    `List ${stageLabel(p.stage)} funding rounds raised by ${sectorLabel(p.sector)} startups in ${regionLabel(p.region)} ` +
-    `announced in the last ${Math.round(days / 30)} months. ${ROUND_COLUMNS}`,
-  twins: (p: FounderProfile) =>
-    `List startups similar to "${p.oneLiner}" (${sectorLabel(p.sector)}${p.customers ? `, selling to ${p.customers}` : ""}) ` +
-    `and every funding round each of them has raised. ${ROUND_COLUMNS}`,
-  investorRounds: (investor: string) =>
-    `List all funding rounds the investor ${investor} participated in during the last 3 years. ${ROUND_COLUMNS}`,
-  funds: (investor: string) =>
-    `List the venture funds raised by ${investor}. Return columns: investor, fund_name, fund_size, close_date (YYYY-MM-DD).`,
-  similar: (description: string, sectorName: string) =>
-    `List startups similar to "${description}" (${sectorName}) and every funding round each of them has raised. ${ROUND_COLUMNS}`,
-  companyRounds: (company: string) => `List every funding round raised by ${company}. ${ROUND_COLUMNS}`,
-  fundCloses: (p: FounderProfile, days: number) =>
-    `List venture capital funds investing in ${sectorLabel(p.sector)} startups in ${regionLabel(p.region)} that closed ` +
-    `in the last ${Math.round(days / 30)} months. Return columns: investor, fund_name, fund_size, close_date (YYYY-MM-DD).`,
-};
-
-async function dealsFor(question: string, hint: QueryHint): Promise<Deal[]> {
-  const [rows, search] = await Promise.all([
-    knowledgeQuery(question, hint),
-    // Sources are a bonus: a failed search still leaves us with the rows.
-    knowledgeSearch(question, hint).catch(() => null),
-  ]);
-  return toDeals(rows, search);
+/** Thrown while the founder's profile or investor ranking is still being built; the route answers 202. */
+export class Pending extends Error {
+  constructor(public pending: ShortlistPending) {
+    super(pending.message);
+    this.name = "Pending";
+  }
 }
 
-async function fundsFor(question: string, hint: QueryHint): Promise<FundClose[]> {
-  const [rows, search] = await Promise.all([
-    knowledgeQuery(question, hint),
-    knowledgeSearch(question, hint).catch(() => null),
-  ]);
-  return toFundCloses(rows, search);
+// ── Market data ─────────────────────────────────────────────────────────────
+
+export function getComparableDeals(p: FounderProfile, days = LOOKBACK_DAYS): Promise<Deal[]> {
+  return service.deals({ sector: p.sector, stage: p.stage, region: p.region, sinceDays: days });
 }
 
-const withinDays = (deals: Deal[], days: number) => deals.filter((d) => ageDays(d.announced) <= days);
-
-export async function getComparableDeals(p: FounderProfile, days = LOOKBACK_DAYS): Promise<Deal[]> {
-  const hint: QueryHint = { kind: "rounds", sector: p.sector, stage: p.stage, region: p.region, withinDays: days };
-  return withinDays(await dealsFor(ask.comparableRounds(p, days), hint), days);
+export function getInvestorRounds(investor: string): Promise<Deal[]> {
+  return service.dealsByInvestor(investor, INVESTOR_HISTORY_DAYS);
 }
 
-export async function getInvestorRounds(investor: string): Promise<Deal[]> {
-  const hint: QueryHint = { kind: "investor", investor, withinDays: INVESTOR_HISTORY_DAYS };
-  return withinDays(await dealsFor(ask.investorRounds(investor), hint), INVESTOR_HISTORY_DAYS);
+export function getFunds(investor: string): Promise<FundClose[]> {
+  return service.funds(investor);
 }
 
-export async function getFunds(investor: string): Promise<FundClose[]> {
-  return fundsFor(ask.funds(investor), { kind: "funds", investor });
-}
-
-/** Startups similar to a description, with all their rounds. */
+/** Startups similar to a description, with all their rounds. `sector` counts only when it is a Sector key. */
 export async function getSimilarCompanies(description: string, sector: string): Promise<Deal[]> {
-  const hint: QueryHint = { kind: "twins", description, customers: "", sector };
-  return dealsFor(ask.similar(description, sectorLabel(sector)), hint);
+  if (!description.trim()) return [];
+  return service.similarDeals(description, isSector(sector) ? sector : undefined);
 }
 
-export async function getCompanyRounds(company: string): Promise<Deal[]> {
-  return dealsFor(ask.companyRounds(company), { kind: "company", company });
+export function getCompanyRounds(company: string): Promise<Deal[]> {
+  return service.dealsByCompany(company);
 }
 
 export async function getTwins(p: FounderProfile): Promise<TwinsResponse> {
-  const hint: QueryHint = { kind: "twins", description: p.oneLiner, customers: p.customers, sector: p.sector };
-  return buildTwins(p, await dealsFor(ask.twins(p), hint), calaMode());
+  const [deals, mode] = await Promise.all([
+    getSimilarCompanies(`${p.oneLiner} ${p.customers}`, p.sector),
+    refreshCalaMode(),
+  ]);
+  return buildTwins(p, deals, mode);
 }
 
 // ── Investor analysis ───────────────────────────────────────────────────────
 
-async function analyseInvestor(p: FounderProfile, inv: RankedInvestor, twinDealIds: Set<string>) {
+async function analyseInvestor(p: FounderProfile, name: string, twinDealIds: Set<string>) {
+  // One investor's failed lookup leaves their row thinner; it never fails the whole page.
   const [rounds, funds] = await Promise.all([
-    getInvestorRounds(inv.name).catch(() => [] as Deal[]),
-    getFunds(inv.name).catch(() => [] as FundClose[]),
+    getInvestorRounds(name).catch(() => [] as Deal[]),
+    getFunds(name).catch(() => [] as FundClose[]),
   ]);
-  const led = rounds.filter((d) => d.leadInvestors.includes(inv.name));
+  const led = rounds.filter((d) => d.leadInvestors.includes(name));
   const portfolio = portfolioFromDeals(rounds);
   const conflict = checkConflict(p, portfolio);
   return {
@@ -116,7 +87,7 @@ async function analyseInvestor(p: FounderProfile, inv: RankedInvestor, twinDealI
     conflict,
     timing: assessTiming(led, funds),
     synergies: findSynergies(p, portfolio, conflict.company ? [conflict.company] : []),
-    coInvestors: coInvestors(inv.name, led),
+    coInvestors: coInvestors(name, led),
     twinsLed: led.filter((d) => twinDealIds.has(d.id)),
   };
 }
@@ -125,47 +96,198 @@ function twinDealIds(twins: TwinsResponse): Set<string> {
   return new Set(twins.twins.flatMap((t) => t.rounds.map((r) => r.id)));
 }
 
-export async function buildShortlist(p: FounderProfile): Promise<ShortlistResponse> {
-  const [deals, twins] = await Promise.all([getComparableDeals(p), getTwins(p).catch(() => null)]);
-  const ranked = rankInvestors(deals);
+const BUILDING_PROFILE: ShortlistPending = {
+  status: "building",
+  step: "profile",
+  message: "Researching your startup from what you entered and public sources.",
+  next: "Then we rank investors for you.",
+};
+const BUILDING_RANKING: ShortlistPending = {
+  status: "building",
+  step: "ranking",
+  message: "Ranking investors for your round.",
+  next: null,
+};
+const RETRY = "Save your profile again on My startup to retry.";
+
+// The agent cites its evidence by fact id, e.g. "(subj:f3)" or "(bidra:f3, bidra:f2)". Founders can't open those
+// ids, so they are dropped from the text shown; the sources stay on the investor brief.
+const FACT_IDS = /\s*\((?:[a-z][\w.-]*:[\w.-]+)(?:,\s*[a-z][\w.-]*:[\w.-]+)*\)/gi;
+/** The other side's agent score for the same pair, in words: "Bidra's agent scores this pair 50 from its side." */
+export function otherSideNote(otherName: string, otherScore: number | null): string {
+  return otherScore != null
+    ? `${otherName}'s agent scores this pair ${Math.round(100 * otherScore)} from its side.`
+    : `${otherName} hasn't been ranked from its side yet.`;
+}
+
+/** Agent text for people: no fact ids, and "the as_of date" (the agent's reference date) said as "today". */
+export const withoutFactIds = (text: string) =>
+  text
+    .replace(FACT_IDS, "")
+    .replace(/\s+([.,;])/g, "$1")
+    .replace(/\bthe as_of date\b/g, "today")
+    .replace(/\bas_of\b/g, "today");
+
+// Job error codes (from the agent run) in plain words; the raw text stays available as "Details".
+const JOB_ERRORS: [RegExp, string][] = [
+  [/^(model_bad_reply|model_bad_request|output_invalid)\b/, "the AI model gave an answer we couldn't use"],
+  [/^budget_exceeded\b/, "the run reached its usage limit"],
+  [/^cala_config/, "the company database (Cala) isn't set up correctly on our side"],
+  [/^(model_unavailable|model_auth_failed|model_config_missing|request_timeout)\b/, "the AI model couldn't be reached"],
+  [/^cala_/, "the company database (Cala) couldn't be reached"],
+  [/^web_/, "the web search couldn't be reached"],
+];
+
+/** "<what failed>: <plain reason>. <retry> Details: <raw error>" — ErrorBox shows the details smaller. */
+export function plainJobError(what: string, raw: string | undefined, retry: string): string {
+  const reason = JOB_ERRORS.find(([re]) => re.test(raw ?? ""))?.[1] ?? "something went wrong on our side";
+  return `${what}: ${reason}. ${retry}${raw ? ` Details: ${raw}` : ""}`;
+}
+const NEW_CANDIDATE = "New on Leadline, not ranked by the agent yet.";
+
+/** An investor's own record (their last 3 years of rounds) as a shortlist row. */
+function investorRow(name: string, rounds: Deal[]): RankedInvestor {
+  const own = rankInvestors(rounds).find((r) => r.name === name);
+  return (
+    own ?? {
+      name,
+      slug: slugify(name),
+      score: 0,
+      ledCount: 0,
+      joinedCount: 0,
+      lastLed: null,
+      leadShare: 0,
+      ledDeals: [],
+      joinedDeals: [],
+      conflict: { level: "none", sources: [] },
+      explanation: "",
+    }
+  );
+}
+
+/**
+ * The founder's investors, in the order the agent ranked them from the stored
+ * profiles; investors that entered the founder's best N since then follow,
+ * marked as not ranked yet. Throws `Pending` (with the running step) until a first ranking is stored, and an
+ * error that says how to retry when the profile or ranking job failed.
+ */
+export async function buildShortlist(p: FounderProfile, founderId: string): Promise<ShortlistResponse> {
+  const [state, twins, mode] = await Promise.all([
+    service.rankings(`founder:${founderId}`),
+    getTwins(p).catch(() => null),
+    refreshCalaMode(),
+  ]);
+  if (!state.ranking) {
+    if (state.status === "failed") {
+      throw new Error(plainJobError("Building your investor ranking failed", state.error, RETRY));
+    }
+    // The profile comes first: until it is stored, the ranking can't start. Saving the profile again retries it.
+    const profile = await service.profileStatus(`founder:${founderId}`);
+    if (profile.status === "failed") {
+      throw new Error(plainJobError("Building your profile failed", profile.error, RETRY));
+    }
+    if (profile.status === "none") {
+      // Nothing was ever queued for this founder (a save never reached the service): saving starts it.
+      throw new Error("We haven't started researching your startup yet. Save your profile on My startup to start.");
+    }
+    throw new Pending(profile.status === "ready" ? BUILDING_RANKING : BUILDING_PROFILE);
+  }
+  const ranked = await Promise.all(
+    state.ranking.matches
+      .filter((m) => m.key.startsWith("investor:"))
+      .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
+      .map(async (m) => {
+        // The investor's own agent may score this pair differently: say so instead of hiding it.
+        const theirs = await service
+          .rankings(m.key)
+          .then((s) => s.ranking?.matches.find((x) => x.key === `founder:${founderId}`)?.score ?? null)
+          .catch(() => null);
+        const reasons = withoutFactIds(m.reasons.map((r) => r.text).join(" ")) || "Ranked by the Leadline agent.";
+        return {
+          name: m.name,
+          score: m.score, // null: not stored; the row keeps its own heuristic score
+          explanation: m.score != null ? `${reasons} ${otherSideNote(m.name, theirs)}` : reasons,
+        };
+      }),
+  );
+  const fresh = state.ranking.newCandidates
+    .filter((c) => c.key.startsWith("investor:"))
+    .map((c) => ({ name: c.name, score: c.fit, explanation: NEW_CANDIDATE }));
   const ids = twins ? twinDealIds(twins) : new Set<string>();
 
-  const enriched = await Promise.all(
-    ranked.slice(0, ENRICH_TOP_N).map(async (inv) => {
-      try {
-        const a = await analyseInvestor(p, inv, ids);
-        return {
-          ...inv,
+  const rows = await Promise.all(
+    [...ranked, ...fresh].map(async (entry) => {
+      const a = await analyseInvestor(p, entry.name, ids);
+      return {
+        deals: a.rounds,
+        investor: {
+          ...investorRow(entry.name, a.rounds),
+          ...(entry.score != null ? { score: Math.round(100 * entry.score) } : {}),
+          explanation: entry.explanation,
           conflict: a.conflict,
           twinsLedCount: new Set(a.twinsLed.map((d) => d.company)).size,
           timingStatus: a.timing.status,
           timingHeadline: a.timing.headline,
           synergyCount: a.synergies.length,
-        };
-      } catch {
-        return inv;
-      }
+        } satisfies RankedInvestor,
+      };
     }),
   );
-  const investors = [...enriched, ...ranked.slice(ENRICH_TOP_N)];
-  const sources = new Set(deals.flatMap((d) => d.sources.map((s) => s.url)));
+  const deals = new Map(rows.flatMap((r) => r.deals.map((d) => [d.id, d] as const)));
+  const sources = new Set([...deals.values()].flatMap((d) => d.sources.map((s) => s.url)));
   return {
-    mode: calaMode(),
+    mode,
     fetchedAt: new Date().toISOString(),
-    roundsAnalysed: deals.length,
+    roundsAnalysed: deals.size,
     sourcesCited: sources.size,
-    investors,
+    investors: rows.map((r) => r.investor),
   };
 }
 
-export async function getInvestorBrief(p: FounderProfile, slug: string): Promise<(InvestorBrief & { mode: string }) | null> {
+/** The investor in the database whose name has this slug, or null. */
+async function investorNamed(slug: string): Promise<string | null> {
+  const word = slug.split("-").find((w) => w.length >= 2) ?? slug;
+  if (!word) return null;
+  const hits = await service.entities(word, 50);
+  return hits.find((e) => e.entity_type === "Investor" && slugify(e.name) === slug)?.name
+    ?? hits.find((e) => slugify(e.name) === slug)?.name
+    ?? null;
+}
+
+/**
+ * "Why them" text from the founder's agent ranking, with the investor agent's score for the same pair, or null
+ * when the agent didn't rank this investor for this founder.
+ */
+async function agentWhyThem(founderId: string, slug: string, name: string): Promise<string | null> {
+  const key = `investor:${slug}`;
+  const [mine, theirs] = await Promise.all([
+    service
+      .rankings(`founder:${founderId}`)
+      .then((s) => s.ranking?.matches.find((m) => m.key === key) ?? null)
+      .catch(() => null),
+    service
+      .rankings(key)
+      .then((s) => s.ranking?.matches.find((m) => m.key === `founder:${founderId}`)?.score ?? null)
+      .catch(() => null),
+  ]);
+  if (!mine || mine.score == null) return null;
+  const reasons = withoutFactIds(mine.reasons.map((r) => r.text).join(" "));
+  return reasons ? `${reasons} ${otherSideNote(name, theirs)}` : null;
+}
+
+export async function getInvestorBrief(
+  p: FounderProfile,
+  slug: string,
+  founderId?: string | null,
+): Promise<(InvestorBrief & { mode: string }) | null> {
   const [deals, twins] = await Promise.all([getComparableDeals(p), getTwins(p).catch(() => null)]);
   let ranked = rankInvestors(deals);
   let inv = ranked.find((i) => i.slug === slug);
 
-  // Investors reached from a twin's path may not lead at the founder's stage.
-  if (!inv && twins) {
-    const name = twins.pathLeads.find((l) => l.slug === slug)?.name;
+  // Investors reached from a twin's path, or ranked by the agent from their
+  // profile, may not lead at the founder's stage: use their own rounds.
+  if (!inv) {
+    const name = twins?.pathLeads.find((l) => l.slug === slug)?.name ?? (await investorNamed(slug));
     if (name) {
       const own = await getInvestorRounds(name);
       ranked = [...ranked, ...rankInvestors(own).filter((r) => r.name === name)];
@@ -174,12 +296,17 @@ export async function getInvestorBrief(p: FounderProfile, slug: string): Promise
   }
   if (!inv) return null;
 
-  const a = await analyseInvestor(p, inv, twins ? twinDealIds(twins) : new Set());
+  const [a, why] = await Promise.all([
+    analyseInvestor(p, inv.name, twins ? twinDealIds(twins) : new Set()),
+    founderId ? agentWhyThem(founderId, slug, inv.name) : Promise.resolve(null),
+  ]);
+  // The agent's reasons first; the rule-based line from the rounds data stays as its own paragraph.
+  if (why) inv = { ...inv, explanation: `${why}\n\nIn the rounds data: ${inv.explanation}` };
   const rank = deals.some((d) => d.leadInvestors.includes(inv!.name) || d.otherInvestors.includes(inv!.name))
     ? rankInvestors(deals).findIndex((i) => i.slug === slug) + 1
     : 0;
   return {
-    mode: calaMode(),
+    mode: await refreshCalaMode(),
     investor: { ...inv, conflict: a.conflict },
     rank,
     of: rankInvestors(deals).length,
@@ -195,17 +322,21 @@ export async function getInvestorBrief(p: FounderProfile, slug: string): Promise
 
 /** New rounds and new funds in the founder's space from the last 30 days. */
 export async function getSignals(p: FounderProfile): Promise<SignalsResponse> {
+  // One history per investor per page load, however many signals name them.
+  const histories = new Map<string, Promise<Deal[]>>();
+  const roundsOf = (investor: string) => {
+    if (!histories.has(investor)) histories.set(investor, getInvestorRounds(investor).catch(() => [] as Deal[]));
+    return histories.get(investor)!;
+  };
   const [deals, closes] = await Promise.all([
     getComparableDeals(p, SIGNAL_DAYS),
-    fundsFor(ask.fundCloses(p, SIGNAL_DAYS), { kind: "fundCloses", sector: p.sector, withinDays: SIGNAL_DAYS }).catch(
-      () => [] as FundClose[],
-    ),
+    service.fundCloses({ sinceDays: SIGNAL_DAYS, sector: p.sector }).catch(() => [] as FundClose[]),
   ]);
 
   const leadSignals = await Promise.all(
     deals.flatMap((deal) =>
       deal.leadInvestors.map(async (investor): Promise<Signal> => {
-        const rounds = await getInvestorRounds(investor).catch(() => [] as Deal[]);
+        const rounds = await roundsOf(investor);
         const portfolio = portfolioFromDeals(rounds.filter((r) => r.company !== deal.company));
         const conflict = checkConflict(p, portfolio);
         return {
@@ -224,7 +355,7 @@ export async function getSignals(p: FounderProfile): Promise<SignalsResponse> {
 
   const fundSignals = await Promise.all(
     closes.map(async (fund): Promise<Signal> => {
-      const rounds = await getInvestorRounds(fund.investor).catch(() => [] as Deal[]);
+      const rounds = await roundsOf(fund.investor);
       const portfolio = portfolioFromDeals(rounds);
       const conflict = checkConflict(p, portfolio);
       return {
@@ -241,5 +372,5 @@ export async function getSignals(p: FounderProfile): Promise<SignalsResponse> {
   );
 
   const signals = [...leadSignals, ...fundSignals].sort((a, b) => a.daysAgo - b.daysAgo);
-  return { mode: calaMode(), checkedAt: new Date().toISOString(), signals };
+  return { mode: await refreshCalaMode(), checkedAt: new Date().toISOString(), signals };
 }

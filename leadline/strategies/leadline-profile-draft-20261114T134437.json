@@ -1,0 +1,78 @@
+{
+  "id": "leadline-profile-draft-20261114T134437",
+  "plugin": "leadline-profile",
+  "plugin_version": "0.1.0",
+  "status": "draft",
+  "base_model": {
+    "model": "claude-research",
+    "provider": "anthropic"
+  },
+  "tendencies": [
+    {
+      "id": "t-facts-first",
+      "text": "Start from cala_facts and the user's own fields; use web research to confirm them or fill gaps, and cite the page you read."
+    },
+    {
+      "id": "t-no-guessing",
+      "text": "A field you cannot support is null. Mark a field inferred only when it follows from cited facts (e.g. sectors from the product description)."
+    },
+    {
+      "id": "t-as-of",
+      "text": "When as_of is given, ignore every fact dated after it, including web pages about later rounds."
+    },
+    {
+      "id": "t-minimal-update",
+      "text": "On an update, keep every field the update and new evidence do not touch exactly as it was; never drop a sourced field without a change entry that says why."
+    },
+    {
+      "id": "t-rating-parts",
+      "text": "Rate each part from evidence: fit (clarity of sector and stage), traction (rounds, customers), team, activity (recent rounds or leads); total is the mean of the parts."
+    },
+    {
+      "id": "research-1",
+      "text": "Treat cala_facts as a starting point, not as current truth. Search for the user's newest round before you set stage. Fractile's Cala row says seed 2025, but the web shows a $15M seed in Jul 2024, a ~$220M Series B in May 2026 and a $720M Series C in Nov 2026. Mistral raised a €1.7B Series C in Sep 2025. Set stage to the latest round and keep the older rows as dated facts.",
+      "sources": [
+        "https://www.silicon.co.uk/cloud/ai/fractile-funding-round-2-632302",
+        "https://eu-startups.com/2025/09/europes-ai-bet-paris-based-mistral-wins-e1-7-billion-doubling-valuation-to-e11-7-billion",
+        "https://seedtable.com/companies/fractile/funding-rounds/seed-2024-07"
+      ]
+    },
+    {
+      "id": "research-2",
+      "text": "Check every Cala number and date against a primary report, and record each version as its own fact with a quote and date. Cala's Mistral seed is $115, but Reuters and Tech.eu report €105M (~$113M). Vaire's 2025 row matches a July 2024 round. Keep the original currency and date from the press, and if you convert, label the result as inferred.",
+      "sources": [
+        "https://www.reuters.com/technology/french-company-mistral-ai-raises-105-mln-euros-shortly-after-being-set-up-2023-06-13/",
+        "https://tech.eu/2023/06/14/fantastique-french-start-up-mistral-ai-raises-a-105-million-seed-round-in-its-first-month-of-existence/",
+        "https://techcrunch.com/2024/07/01/vaire-computing-raises-4-5m-for-reversible-computing-moonshot-which-could-drastically-reduce-energy-needs/"
+      ]
+    },
+    {
+      "id": "research-3",
+      "text": "Do not leave investors as 'Not disclosed' without searching. Press releases usually name the leads and co-leads. Fractile's seed was co-led by Kindred, the NATO Innovation Fund and OSE. Vaire's was co-led by 7percent Ventures and Jude Gomila. Record each lead in a web fact. For investor lead_share, count co-leads as leads and divide by the rounds you actually found.",
+      "sources": [
+        "https://www.pymnts.com/news/investment-tracker/2024/fractile-raises-15-million-to-develop-new-ai-chip/",
+        "https://seedcamp.com/views/vaire-computing-secures-4-5m-to-create-near-zero-energy-silicon-chips-using-reversible-computing/",
+        "https://support.crunchbase.com/hc/en-us/articles/30646679220115-Funding-Rounds-Filters-Definitions"
+      ]
+    },
+    {
+      "id": "research-4",
+      "text": "Watch out for amounts that are really cumulative totals. Vaire's '$4.5M' is its total raised, and DCD says the seed itself was $4M. Store the round amount and the cumulative total as separate facts, quoting each one, so traction scores and check sizes are based on the right figure.",
+      "sources": [
+        "https://www.datacenterdynamics.com/en/news/vaire-computing-raises-4-million-for-reversible-computing-proof-of-concept/",
+        "https://www.energetik.vc/portfolio-news"
+      ]
+    },
+    {
+      "id": "research-5",
+      "text": "Base each rating part on fact ids. Score traction from the size and recency of the latest round (for example, ASML's €1.3B lead of Mistral's round). Score activity from how recent the rounds are. Lower confidence in a part when its facts conflict or are stale. In updates, change only the fields where new evidence beats the old fact, and give the old and new values plus the fact id in the reason.",
+      "sources": [
+        "https://cnbc.com/2025/09/09/ai-firm-mistral-valued-at-14-billion-as-asml-takes-major-stake.html",
+        "https://www.clay.com/dossier/mistral-ai-funding",
+        "https://www.silicon.co.uk/cloud/ai/fractile-funding-round-2-632302"
+      ]
+    }
+  ],
+  "created_at": "2026-11-14T13:44:37+00:00",
+  "notes": "Drafted by the training research step from web search. Not validated."
+}

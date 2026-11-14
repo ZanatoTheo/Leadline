@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Bell, BookOpen, CalendarCheck, GitBranch, Handshake, Inbox, ListOrdered, LogOut, Moon, Sun, UserRound, Zap } from "lucide-react";
@@ -15,7 +16,12 @@ type NavItem = { label: string; href: string; icon: React.ComponentType<{ classN
 
 export function Sidebar({ incomingIntros = 0 }: { incomingIntros?: number }) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  // The theme is only known in the browser: render the light-theme toggle until mounted so the server and the
+  // first client render match (no hydration mismatch), then show the real one.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const dark = mounted && resolvedTheme === "dark";
   const hydrated = useHydrated();
   const session = useSession();
   const localProfile = useLeadline((s) => s.profile);
@@ -117,11 +123,11 @@ export function Sidebar({ incomingIntros = 0 }: { incomingIntros?: number }) {
       <div className="space-y-1 border-t border-border px-3 py-3">
         <PoweredByCala mode={calaMode} className="mb-1 w-full justify-center" />
         <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={() => setTheme(dark ? "light" : "dark")}
           className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
         >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          <span>{dark ? "Light mode" : "Dark mode"}</span>
         </button>
         <button
           onClick={logout}

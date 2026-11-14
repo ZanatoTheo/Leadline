@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "companies": [
+    {
+      "id": "c_subject",
+      "name": "Northstar Storage",
+      "description": "Grid battery software and storage controls.",
+      "website": "https://northstar.example",
+      "country": "Finland",
+      "founded": 2022,
+      "stage": "seed",
+      "sectors": ["climate", "software"],
+      "source": {"ref": "company:c_subject", "url": "https://cala.example/c_subject"}
+    },
+    {
+      "id": "c_other",
+      "name": "Bright Grid",
+      "description": "Grid storage systems.",
+      "website": "https://brightgrid.example",
+      "country": "Sweden",
+      "founded": 2021,
+      "stage": "seed",
+      "sectors": ["climate", "energy"],
+      "source": {"ref": "company:c_other", "url": "https://cala.example/c_other"}
+    }
+  ],
+  "investors": [
+    {
+      "id": "i_prior",
+      "name": "North Fund",
+      "kind": "vc",
+      "website": "https://northfund.example",
+      "country": "Finland",
+      "stage_focus": ["seed"],
+      "sector_focus": ["climate", "software"],
+      "check_size": {"min": 200000, "max": 2000000, "currency": "EUR"},
+      "source": {"ref": "investor:i_prior"}
+    },
+    {
+      "id": "i_lead",
+      "name": "Aurora Ventures",
+      "kind": "vc",
+      "website": "https://aurora.example",
+      "country": "Sweden",
+      "stage_focus": ["seed"],
+      "sector_focus": ["climate", "energy"],
+      "check_size": {"min": 300000, "max": 3000000, "currency": "EUR"},
+      "source": {"ref": "investor:i_lead"}
+    },
+    {
+      "id": "i_follower",
+      "name": "Lake Angels",
+      "kind": "angel",
+      "website": "https://lakeangels.example",
+      "country": "Finland",
+      "stage_focus": ["seed"],
+      "sector_focus": ["climate"],
+      "check_size": {"min": 25000, "max": 150000, "currency": "EUR"},
+      "source": {"ref": "investor:i_follower"}
+    }
+  ],
+  "rounds": [
+    {
+      "id": "r_prior",
+      "company_id": "c_other",
+      "date": "2024-03-10",
+      "stage": "seed",
+      "amount": {"value": 900000, "currency": "EUR"},
+      "investors": [{"investor_id": "i_prior", "role": "lead"}],
+      "source": {"ref": "round:r_prior", "url": "https://cala.example/r_prior"}
+    },
+    {
+      "id": "r_held_out",
+      "company_id": "c_subject",
+      "date": "2025-04-12",
+      "stage": "seed",
+      "amount": {"value": 1200000, "currency": "EUR"},
+      "investors": [
+        {"investor_id": "i_lead", "role": "lead"},
+        {"investor_id": "i_follower", "role": "participant"}
+      ],
+      "source": {"ref": "round:r_held_out", "url": "https://cala.example/r_held_out"}
+    },
+    {
+      "id": "r_participant_history",
+      "company_id": "c_other",
+      "date": "2024-08-10",
+      "stage": "seed",
+      "amount": {"value": 700000, "currency": "EUR"},
+      "investors": [{"investor_id": "i_follower", "role": "participant"}],
+      "source": {"ref": "round:r_participant_history", "url": "https://cala.example/r_participant_history"}
+    }
+  ],
+  "people": []
+}

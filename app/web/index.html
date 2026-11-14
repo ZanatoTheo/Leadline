@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leadline — find investors who actually lead</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <h1>Leadline</h1>
+  <p class="tagline">Find investors who actually <em>lead</em> rounds like yours — and are still investing today.</p>
+  <div class="badges">
+    <span id="mock-badge" class="badge badge-mock hidden">demo data</span>
+    <span id="dataset-badge" class="badge hidden"></span>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" id="tab-raising" role="tab" aria-selected="true">I'm raising</button>
+  <button class="tab" id="tab-investing" role="tab" aria-selected="false">I'm investing</button>
+</nav>
+
+<main>
+  <section class="panel">
+    <h2 id="subject-heading">Your company</h2>
+
+    <div class="field">
+      <label for="search">Search Cala</label>
+      <input type="text" id="search" placeholder="Type a name…" autocomplete="off">
+      <ul id="search-results" class="search-results hidden"></ul>
+    </div>
+
+    <div id="picked" class="picked hidden">
+      <span id="picked-name"></span>
+      <button id="clear-picked" class="link-btn">change</button>
+    </div>
+
+    <details id="inline-form" class="inline-form">
+      <summary>Not in Cala? Describe your startup</summary>
+      <div class="grid">
+        <label>Name <input id="f-name" type="text"></label>
+        <label>One-line description <input id="f-desc" type="text"></label>
+        <label>Country <input id="f-country" type="text"></label>
+        <label>Stage
+          <select id="f-stage">
+            <option value="pre_seed">pre-seed</option>
+            <option value="seed" selected>seed</option>
+            <option value="series_a">Series A</option>
+          </select>
+        </label>
+        <label>Sectors <input id="f-sectors" type="text" placeholder="cleantech, ai"></label>
+      </div>
+    </details>
+
+    <div class="grid filters">
+      <label>Countries <input id="filter-countries" type="text" placeholder="Finland, Sweden"></label>
+      <label>Stages
+        <select id="filter-stages" multiple size="4">
+          <option value="pre_seed">pre-seed</option>
+          <option value="seed">seed</option>
+          <option value="series_a">Series A</option>
+          <option value="series_b">Series B</option>
+        </select>
+      </label>
+      <label>As of <input id="as-of" type="date"></label>
+    </div>
+
+    <button id="go" class="go" disabled>Find my leads</button>
+  </section>
+
+  <section id="state" class="state"></section>
+
+  <section id="warnings" class="warnings hidden"></section>
+
+  <section id="results" class="hidden">
+    <h2>Your matches</h2>
+    <ol id="match-list" class="match-list"></ol>
+    <details id="why-not" class="why-not hidden">
+      <summary>Why not these?</summary>
+      <ul id="rejected-list"></ul>
+    </details>
+    <a id="csv-link" class="csv-link" href="#">Download CSV</a>
+  </section>
+</main>
+
+<footer>
+  <p>Every fact links back to its source. <strong>Built on <a href="https://cala.ai" rel="noopener">Cala</a></strong> — verified, structured company and funding data. Matching by <strong>Venus</strong>. A Junction 2026 demo.</p>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

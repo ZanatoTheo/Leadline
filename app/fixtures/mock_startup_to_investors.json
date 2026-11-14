@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "status": "ok",
+  "run_id": "mock-s2i-001",
+  "generated_at": "2026-11-13T12:00:00Z",
+  "request": {"direction": "startup_to_investors", "subject_id": "c_lumiforge", "top_k": 10, "as_of": "2026-11-13"},
+  "matches": [
+    {
+      "candidate_id": "i_nordic_seed",
+      "candidate_type": "investor",
+      "rank": 1,
+      "score": 0.91,
+      "score_parts": {"stage_fit": 0.35, "sector_fit": 0.30, "lead_track_record": 0.16, "recency": 0.10},
+      "role": "lead",
+      "active": {"status": "active", "last_lead_date": "2025-09-12", "evidence": ["ev_r1"]},
+      "confidence": "high",
+      "reasons": [
+        {"text": "Led Lumiforge's own €1.8M seed in Sep 2025.", "evidence": ["ev_r1"]},
+        {"text": "Focuses on seed-stage cleantech and SaaS in the Nordics.", "evidence": ["ev_i_nordic_seed"]},
+        {"text": "Typical check €0.5–2.5M fits a seed round of your size.", "evidence": ["ev_i_nordic_seed"]}
+      ]
+    },
+    {
+      "candidate_id": "i_baltic_ventures",
+      "candidate_type": "investor",
+      "rank": 2,
+      "score": 0.83,
+      "score_parts": {"stage_fit": 0.32, "sector_fit": 0.25, "lead_track_record": 0.16, "recency": 0.10},
+      "role": "lead",
+      "active": {"status": "active", "last_lead_date": "2025-11-03", "evidence": ["ev_r2"]},
+      "confidence": "high",
+      "reasons": [
+        {"text": "Most recent lead: Kittencode's €2.2M seed (Nov 2025) — still leading deals today.", "evidence": ["ev_r2"]},
+        {"text": "Leads seed and Series A rounds in SaaS/AI across the Baltics and Nordics.", "evidence": ["ev_i_baltic"]}
+      ]
+    },
+    {
+      "candidate_id": "i_fjord_impact",
+      "candidate_type": "investor",
+      "rank": 3,
+      "score": 0.74,
+      "score_parts": {"stage_fit": 0.28, "sector_fit": 0.28, "lead_track_record": 0.12, "recency": 0.06},
+      "role": "lead",
+      "active": {"status": "active", "last_lead_date": "2026-02-14", "evidence": ["ev_r4"]},
+      "confidence": "medium",
+      "reasons": [
+        {"text": "Led Polargrid's €7.5M Series A in Feb 2026 — active and leads cleantech.", "evidence": ["ev_r4"]},
+        {"text": "Cleantech focus matches solid-state batteries; check size up to €6M.", "evidence": ["ev_i_fjord"]}
+      ]
+    }
+  ],
+  "rejected": [
+    {"candidate_id": "i_aurora_angels", "reason": "size_mismatch", "detail": "Typical checks are €50–400K, below most seed leads."},
+    {"candidate_id": "i_meadowlane", "reason": "sector_mismatch", "detail": "Focuses on biotech and healthtech, not cleantech manufacturing."},
+    {"candidate_id": "i_helix_capital", "reason": "stage_mismatch", "detail": "Leads Series A/B and later; rarely leads seed rounds."},
+    {"candidate_id": "i_deepblue_growth", "reason": "stage_mismatch", "detail": "Growth-stage investor; minimum check €10M."}
+  ],
+  "evidence": [
+    {"id": "ev_r1", "kind": "dataset", "ref": "cala:r_1", "url": "https://cala.ai/e/c_lumiforge", "date": "2025-09-12", "quote": "Lumiforge raised a €1.8M seed led by Nordic Seed Partners."},
+    {"id": "ev_r2", "kind": "dataset", "ref": "cala:r_2", "url": "https://cala.ai/e/c_kittencode", "date": "2025-11-03", "quote": "Kittencode raised a €2.2M seed led by Baltic Ventures."},
+    {"id": "ev_r4", "kind": "dataset", "ref": "cala:r_4", "url": "https://cala.ai/e/c_polargrid", "date": "2026-02-14", "quote": "Polargrid raised a €7.5M Series A led by Fjord Impact."},
+    {"id": "ev_i_nordic_seed", "kind": "dataset", "ref": "cala:i_nordic_seed", "quote": "Nordic Seed Partners: seed-stage Nordic fund, cleantech and SaaS, checks €0.5–2.5M."},
+    {"id": "ev_i_baltic", "kind": "dataset", "ref": "cala:i_baltic_ventures", "quote": "Baltic Ventures: leads seed and Series A rounds in SaaS, AI and fintech."},
+    {"id": "ev_i_fjord", "kind": "dataset", "ref": "cala:i_fjord_impact", "quote": "Fjord Impact: seed and Series A cleantech investor, checks up to €6M."}
+  ],
+  "warnings": [],
+  "stats": {"candidates_considered": 7, "matched": 3, "rejected": 4}
+}

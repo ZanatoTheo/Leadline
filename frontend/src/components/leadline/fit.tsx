@@ -33,7 +33,7 @@ export function FitPoints({ fit }: { fit: FitReport }) {
           )}
           <span>
             <span className="font-medium">{p.label}</span>
-            <span className="text-muted-foreground"> · {p.detail}</span>{" "}
+            {p.detail && <span className="text-muted-foreground"> · {p.detail}</span>}{" "}
             {p.sources.length > 0 && <SourceLinks sources={p.sources} />}
           </span>
         </li>

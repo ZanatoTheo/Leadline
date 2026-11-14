@@ -1,0 +1,74 @@
+{
+  "id": "leadline-match-draft-20261114T135101",
+  "plugin": "leadline-match",
+  "plugin_version": "0.1.0",
+  "status": "draft",
+  "base_model": {
+    "model": "claude-research",
+    "provider": "anthropic"
+  },
+  "tendencies": [
+    {
+      "id": "t-leads-first",
+      "text": "Rank candidates who have led rounds (role lead, high lead_share) above those who only joined rounds; a candidate seen only as a participant goes in rejected with reason follower_only when lead history is known."
+    },
+    {
+      "id": "t-observed-fit",
+      "text": "Reject only on an observed fact: stage, sector, country or check size that clearly does not fit the subject. A missing or unknown field never rejects; rank it lower and say confidence low."
+    },
+    {
+      "id": "t-recent-activity",
+      "text": "Prefer candidates with a lead in the 24 months before request.as_of; mark older activity as inactive. Ignore anything dated after request.as_of."
+    },
+    {
+      "id": "t-cite-evidence",
+      "text": "Every reason cites at least one evidence id from the evidence list; add each profile fact or web page you rely on to evidence once, with its ref or url."
+    },
+    {
+      "id": "t-only-given",
+      "text": "Use only candidate ids from the input, each at most once across matches and rejected; never add the subject or new names."
+    },
+    {
+      "id": "research-1",
+      "text": "Before you score anything, drop every fact or web page dated after request.as_of, even if it's off by one day. For example, a 2023-06-01 Mistral deal can't count for an as_of of 2023-05-31, and a Jun 2025 Proxima lead can't count for 2025-05-31. Judge each fact by the date it became public. Never use the round you're trying to predict as evidence.",
+      "sources": [
+        "https://www.alphanume.com/blog/what-is-look-ahead-bias",
+        "https://sharpely.in/blogs/bias-free-backtesting-explained-sharpely-uses-point-time-data-avoid-look/"
+      ]
+    },
+    {
+      "id": "research-2",
+      "text": "Rank candidates by proven leading first. Set role=lead only when a dated fact says 'Led X'. 'Invested in' means participant. If there are no facts, use unknown. Put a candidate in follower_only only when its record shows it co-invests and never leads. A lead in the past 12-18 months before as_of is the strongest signal. Older leads or no leads should lower the activity part of the score.",
+      "sources": [
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-identify-potential-lead-investors",
+        "https://finta.ai/blog/series-a-fundraising-comprehensive-guide"
+      ]
+    },
+    {
+      "id": "research-3",
+      "text": "Split score_parts into stage, sector, geography, check size and lead activity. A lead usually writes 50-70% of the round. A small seed fund or angel group can't lead a raise of $100M or more, so reject it with size_mismatch or stage_mismatch. Reject with sector_mismatch when the investor's focus clearly doesn't overlap, for example a pharma corporate for an AI startup.",
+      "sources": [
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-identify-potential-lead-investors",
+        "https://finta.ai/blog/series-a-fundraising-comprehensive-guide"
+      ]
+    },
+    {
+      "id": "research-4",
+      "text": "When a candidate has no dataset facts, look up its thesis, stage and region on the web. Use only pages that describe it on or before as_of. Record each page as web evidence with its url and date, and cite it in the reasons. If you can't find anything, keep the score low, set confidence=low and role=unknown, and add a warning. Don't invent leads.",
+      "sources": [
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-identify-potential-lead-investors",
+        "https://www.alphanume.com/blog/what-is-look-ahead-bias"
+      ]
+    },
+    {
+      "id": "research-5",
+      "text": "Favor investors whose focus fits the subject's sector and country, such as a deep-tech fund for fusion or a French or EU fund for a French startup, and that are deploying capital now. Every reason must cite real evidence ids. Return at most top_k matches, ranked 1..n with scores that fall as rank goes down. Reject clear misfits instead of leaving them as low-scored matches.",
+      "sources": [
+        "https://finta.ai/blog/series-a-fundraising-comprehensive-guide",
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-identify-potential-lead-investors"
+      ]
+    }
+  ],
+  "created_at": "2026-11-14T13:51:01+00:00",
+  "notes": "Drafted by the training research step from web search. Not validated."
+}

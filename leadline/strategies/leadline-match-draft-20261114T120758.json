@@ -1,0 +1,75 @@
+{
+  "id": "leadline-match-draft-20261114T120758",
+  "plugin": "leadline-match",
+  "plugin_version": "0.1.0",
+  "status": "draft",
+  "base_model": {
+    "model": "claude-research",
+    "provider": "anthropic"
+  },
+  "tendencies": [
+    {
+      "id": "t-leads-first",
+      "text": "Rank candidates who have led rounds (role lead, high lead_share) above those who only joined rounds; a candidate seen only as a participant goes in rejected with reason follower_only when lead history is known."
+    },
+    {
+      "id": "t-observed-fit",
+      "text": "Reject only on an observed fact: stage, sector, country or check size that clearly does not fit the subject. A missing or unknown field never rejects; rank it lower and say confidence low."
+    },
+    {
+      "id": "t-recent-activity",
+      "text": "Prefer candidates with a lead in the 24 months before request.as_of; mark older activity as inactive. Ignore anything dated after request.as_of."
+    },
+    {
+      "id": "t-cite-evidence",
+      "text": "Every reason cites at least one evidence id from the evidence list; add each profile fact or web page you rely on to evidence once, with its ref or url."
+    },
+    {
+      "id": "t-only-given",
+      "text": "Use only candidate ids from the input, each at most once across matches and rejected; never add the subject or new names."
+    },
+    {
+      "id": "research-1",
+      "text": "Before scoring, drop every fact dated after request.as_of, including last_lead_date. For example, a 2023-06-01 Mistral fact cannot be used when as_of is 2023-05-31. Add a warning for each dropped fact so no later knowledge leaks into the ranking.",
+      "sources": [
+        "https://arxiv.org/abs/2511.23364v1",
+        "https://arxiv.org/abs/2512.22608v3"
+      ]
+    },
+    {
+      "id": "research-2",
+      "text": "Rank on lead behaviour first. A dated 'Led X' fact at the subject's stage in the 12-18 months before as_of is the strongest signal: set role=lead, fill last_lead_date and mark it active. 'Invested in' facts only support role=participant. Reject as follower_only only when the evidence shows the candidate follows and never leads.",
+      "sources": [
+        "https://www.crv.com/content/how-to-find-a-vc",
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-know-if-an-investor-is-a-lead-or-a-follower",
+        "https://www.crv.com/content/lead-investor"
+      ]
+    },
+    {
+      "id": "research-3",
+      "text": "Use separate score_parts for stage, sector, geography, check size compared with raising.amount (leads write 50-70% of a round), lead record and recency. Judge sector fit from recent deals, not the fund's name. Reject for stage, size or sector mismatch only when the evidence clearly rules the candidate out.",
+      "sources": [
+        "https://www.crv.com/content/how-to-find-a-vc",
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-know-if-an-investor-is-a-lead-or-a-follower"
+      ]
+    },
+    {
+      "id": "research-4",
+      "text": "When a candidate has no facts, do not invent a history. Give it role=unknown, status 'unknown', low confidence and a score below candidates with evidence. Do not reject it as inactive without proof. Use only web pages dated on or before as_of, and cite each with its url and date.",
+      "sources": [
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-know-if-an-investor-is-a-lead-or-a-follower",
+        "https://arxiv.org/abs/2512.22608v3"
+      ]
+    },
+    {
+      "id": "research-5",
+      "text": "Return at most top_k matches, using only the given ids, ordered by score. Every reason must cite real evidence ids. Set confidence to high only when a dated lead fact matches the subject's stage, sector and region. Treat a fact shared by many candidates as weak evidence and add a warning.",
+      "sources": [
+        "https://www.crv.com/content/how-to-find-a-vc",
+        "https://arxiv.org/abs/2511.23364v1"
+      ]
+    }
+  ],
+  "created_at": "2026-11-14T12:07:58+00:00",
+  "notes": "Drafted by the training research step from web search. Not validated."
+}

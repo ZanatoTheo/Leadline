@@ -1,9 +1,14 @@
 // Accounts and sessions. Each user has exactly one role, and every page group
 // and API checks it, so founders and investors only ever see their own side.
 
-import { randomBytes, scryptSync, timingSafeEqual, randomUUID } from "node:crypto";
+// Users and sessions are stored by the Leadline service (./leadline-service.ts);
+// password hashing and the session cookie stay here, in the TS server.
+
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import { readDb, update, type Role, type User } from "./db";
+import type { Role, User } from "./db";
+import * as service from "./leadline-service";
+import { ServiceError } from "./leadline-service";
 import type { FounderProfile } from "@/lib/leadline/types";
 import { DEMO_PERSONA } from "@/lib/leadline/demo";
 
@@ -40,12 +45,9 @@ type FullUser = User & { profile: FounderProfile | null; discoverable: boolean }
 export async function currentUser(): Promise<FullUser | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  const db = await readDb();
-  const session = db.sessions.find((s) => s.token === token && s.expiresAt > new Date().toISOString());
-  const user = session && db.users.find((u) => u.id === session.userId);
-  if (!user) return null;
-  const founder = user.founderId ? db.founders.find((f) => f.id === user.founderId) : undefined;
-  return { ...user, profile: founder?.profile ?? null, discoverable: founder?.discoverable ?? true };
+  const session = await service.getSession(token); // null when missing or expired
+  if (!session) return null;
+  return { ...session.user, profile: session.profile, discoverable: session.discoverable };
 }
 
 export function toSessionUser(u: FullUser): SessionUser {
@@ -64,10 +66,7 @@ export function toSessionUser(u: FullUser): SessionUser {
 async function startSession(userId: string): Promise<void> {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 3600 * 1000).toISOString();
-  await update((db) => {
-    db.sessions = db.sessions.filter((s) => s.expiresAt > new Date().toISOString());
-    db.sessions.push({ token, userId, expiresAt });
-  });
+  await service.createSession({ userId, token, expiresAt });
   (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -80,34 +79,31 @@ async function startSession(userId: string): Promise<void> {
 export async function endSession(): Promise<void> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
-  if (token) await update((db) => void (db.sessions = db.sessions.filter((s) => s.token !== token)));
+  if (token) await service.deleteSession(token);
   store.delete(SESSION_COOKIE);
 }
 
 export async function signUp(input: { role: Role; name: string; email: string; password: string }): Promise<string | null> {
   const email = input.email.trim().toLowerCase();
-  const user = await update((db) => {
-    if (db.users.some((u) => u.email === email)) return null;
-    const u: User = {
-      id: randomUUID(),
+  let user: User;
+  try {
+    user = await service.createUser({
       role: input.role,
       name: input.name.trim(),
       email,
       passwordHash: hashPassword(input.password),
-      createdAt: new Date().toISOString(),
-    };
-    db.users.push(u);
-    return u;
-  });
-  if (!user) return "An account with this email already exists.";
+    });
+  } catch (err) {
+    if (err instanceof ServiceError && err.status === 409) return "An account with this email already exists.";
+    throw err;
+  }
   await startSession(user.id);
   return null;
 }
 
 export async function logIn(emailRaw: string, password: string): Promise<User | null> {
   const email = emailRaw.trim().toLowerCase();
-  const db = await readDb();
-  const user = db.users.find((u) => u.email === email);
+  const user = await service.getUserByEmail(email);
   if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) return null;
   await startSession(user.id);
   return user;
@@ -122,24 +118,17 @@ export const demoLoginEnabled = () =>
 
 const DEMO: Record<Role, { email: string; name: string; investorName?: string }> = {
   founder: { email: "demo-founder@leadline.local", name: "Alex" },
-  investor: { email: "demo-investor@leadline.local", name: "Sam", investorName: "Fjord Ventures" },
+  investor: { email: "demo-investor@leadline.local", name: "Sam", investorName: "Bidra Innovation Ventures" },
 };
 
 export async function logInDemo(role: Role): Promise<User> {
   const d = DEMO[role];
-  const user = await update((db) => {
-    let u = db.users.find((x) => x.email === d.email);
-    if (!u) {
-      u = { id: randomUUID(), role, name: d.name, email: d.email, passwordHash: "", investorName: d.investorName, createdAt: new Date().toISOString() };
-      db.users.push(u);
-    }
-    // The demo founder starts with the demo persona, opted in to discovery.
-    if (role === "founder" && !u.founderId) {
-      const id = randomUUID();
-      db.founders.push({ id, profile: DEMO_PERSONA, founderName: d.name, email: d.email, discoverable: true, updatedAt: new Date().toISOString() });
-      u.founderId = id;
-    }
-    return u;
+  // Made once by the service; the demo founder starts with the demo persona, opted in to discovery.
+  const user = await service.demoUser({
+    role,
+    email: d.email,
+    name: d.name,
+    ...(role === "founder" ? { persona: DEMO_PERSONA } : { investorName: d.investorName }),
   });
   await startSession(user.id);
   return user;

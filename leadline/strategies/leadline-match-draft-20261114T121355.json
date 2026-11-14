@@ -1,0 +1,75 @@
+{
+  "id": "leadline-match-draft-20261114T121355",
+  "plugin": "leadline-match",
+  "plugin_version": "0.1.0",
+  "status": "draft",
+  "base_model": {
+    "model": "claude-research",
+    "provider": "anthropic"
+  },
+  "tendencies": [
+    {
+      "id": "t-leads-first",
+      "text": "Rank candidates who have led rounds (role lead, high lead_share) above those who only joined rounds; a candidate seen only as a participant goes in rejected with reason follower_only when lead history is known."
+    },
+    {
+      "id": "t-observed-fit",
+      "text": "Reject only on an observed fact: stage, sector, country or check size that clearly does not fit the subject. A missing or unknown field never rejects; rank it lower and say confidence low."
+    },
+    {
+      "id": "t-recent-activity",
+      "text": "Prefer candidates with a lead in the 24 months before request.as_of; mark older activity as inactive. Ignore anything dated after request.as_of."
+    },
+    {
+      "id": "t-cite-evidence",
+      "text": "Every reason cites at least one evidence id from the evidence list; add each profile fact or web page you rely on to evidence once, with its ref or url."
+    },
+    {
+      "id": "t-only-given",
+      "text": "Use only candidate ids from the input, each at most once across matches and rejected; never add the subject or new names."
+    },
+    {
+      "id": "research-1",
+      "text": "Before scoring, drop every fact dated after request.as_of. Examples: Lightspeed's 'Mistral AI, Jun 2023' when as_of is 2023-05-31, and redalpine's 'Led Proxima Fusion, Jun 2025' when as_of is 2025-05-31. Don't let those facts set last_lead_date, role or rank. Add a warning naming each fact you excluded.",
+      "sources": [
+        "https://arxiv.org/abs/2511.23364v1",
+        "https://arxiv.org/abs/2512.22608v3"
+      ]
+    },
+    {
+      "id": "research-2",
+      "text": "Give the most weight to the role an investor actually played. A 'Led X' fact dated on or before as_of gets role=lead and a high score. A plain 'Invested in X' fact only shows participation (role=participant, lower score). Only use the follower_only rejection when the evidence shows the investor repeatedly followed and never led.",
+      "sources": [
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-know-if-an-investor-is-a-lead-or-a-follower",
+        "https://www.crv.com/content/how-to-find-a-vc",
+        "https://www.crv.com/content/lead-investor"
+      ]
+    },
+    {
+      "id": "research-3",
+      "text": "Score each candidate with separate score_parts: lead_history, recency, stage, sector, geography and check size. Recent leads at the subject's stage (within about 12-18 months of as_of) score highest. Sector fit should come from the investor's latest deals, not from its name alone.",
+      "sources": [
+        "https://www.crv.com/content/how-to-find-a-vc",
+        "https://valueaddvc.com/blog/what-is-a-lead-investor-roles-rights-and-why-finding-the-right-one-matters"
+      ]
+    },
+    {
+      "id": "research-4",
+      "text": "Compare the raise to what the investor can realistically lead. A lead usually writes 50-70% of the round, so a $100M+ raise needs a large multi-stage or growth fund. Reject accelerators, micro-funds and grant bodies on size_mismatch or stage_mismatch only when that is clear. Reject an obvious single-sector fund on sector_mismatch, e.g. a defence or energy fund for a biotech subject.",
+      "sources": [
+        "https://www.sheetventure.com/fundraising-knowledge/how-do-i-know-if-an-investor-is-a-lead-or-a-follower",
+        "https://www.crv.com/content/how-to-find-a-vc"
+      ]
+    },
+    {
+      "id": "research-5",
+      "text": "If a candidate has no facts dated on or before as_of, don't invent activity or reasons. Either leave it out or give it a low score with role=unknown, active.status='unknown' and confidence=low. Every reason must cite a real evidence id from the dataset or from a web page you read with its url. Return at most top_k matches.",
+      "sources": [
+        "https://www.crv.com/content/how-to-find-a-vc",
+        "https://arxiv.org/abs/2511.23364v1"
+      ]
+    }
+  ],
+  "created_at": "2026-11-14T12:13:55+00:00",
+  "notes": "Drafted by the training research step from web search. Not validated."
+}

@@ -1,0 +1,51 @@
+{
+  "$ref": "#/definitions/User",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Role": {
+      "enum": [
+        "founder",
+        "investor"
+      ],
+      "type": "string"
+    },
+    "User": {
+      "additionalProperties": false,
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "founderId": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "investorName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "passwordHash": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/Role"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "name",
+        "email",
+        "passwordHash",
+        "createdAt"
+      ],
+      "type": "object"
+    }
+  }
+}

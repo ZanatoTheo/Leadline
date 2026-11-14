@@ -1,0 +1,26 @@
+{
+  "$ref": "#/definitions/Session",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Session": {
+      "additionalProperties": false,
+      "properties": {
+        "expiresAt": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "token",
+        "userId",
+        "expiresAt"
+      ],
+      "type": "object"
+    }
+  }
+}

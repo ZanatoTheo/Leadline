@@ -85,3 +85,28 @@ frontend/.cala-cache/
 
 # Leadline demo data (founder profiles, intros)
 frontend/.leadline-data/
+
+# Secrets: never commit. Only *.env.example files belong in git.
+*.env
+!*.env.example
+
+# Local Python builds and tool caches
+build/
+dist/
+.pytest_cache/
+
+# Venus caches and run records (web/model replies, training runs)
+.venus_cache/
+venus/runs/
+
+# Generated app data (Cala cache, dataset, runs)
+app/data/
+
+# Agent injected by scripts/inject_agent.sh (generated from venus export)
+leadline/agent/
+
+# Venus is its own project (separate repo); not part of this push
+venus/
+
+# Training run records
+leadline/runs/

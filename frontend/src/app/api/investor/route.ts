@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   if (typeof profile === "string") return Response.json({ error: profile }, { status: 400 });
   if (typeof body?.slug !== "string") return Response.json({ error: "Missing investor." }, { status: 400 });
   try {
-    const result = await getInvestorBrief(profile, body.slug);
+    const result = await getInvestorBrief(profile, body.slug, auth.user.founderId);
     if (!result) return Response.json({ error: "Investor not found in matching rounds." }, { status: 404 });
     return Response.json(result);
   } catch (err) {

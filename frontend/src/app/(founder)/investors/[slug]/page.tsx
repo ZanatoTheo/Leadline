@@ -55,6 +55,11 @@ function Card({
   );
 }
 
+/** A line break after every ". " (the space is kept), so long text reads one sentence per line. */
+function breakSentences(text: string): string {
+  return text.replaceAll(". ", ". \n");
+}
+
 function DealList({ deals, role }: { deals: Deal[]; role: "Led" | "Joined" }) {
   if (!deals.length) return <p className="text-sm text-muted-foreground">None in the matching rounds.</p>;
   return (
@@ -160,7 +165,7 @@ export default function InvestorPage() {
           {/* The three-part brief */}
           <div className="grid gap-4 lg:grid-cols-3">
             <Card icon={Target} title="Why them">
-              <p className="text-sm">{inv.explanation}</p>
+              <p className="whitespace-pre-line text-sm">{breakSentences(inv.explanation)}</p>
               {data.twinsLed.length > 0 && (
                 <div className="mt-3 space-y-1.5">
                   <div className="flex items-center gap-1 text-xs font-semibold text-violet-700 dark:text-violet-400">

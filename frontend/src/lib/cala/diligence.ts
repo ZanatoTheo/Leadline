@@ -1,4 +1,4 @@
-// Due diligence for investors: everything Leadline knows from Cala about a
+// Due diligence for investors: everything Leadline knows (its database of Cala facts) about a
 // startup, framed as "should we invest?". Server-side only.
 
 import type { Deal } from "@/lib/leadline/types";
@@ -7,8 +7,8 @@ import type { CompanyDiligence, DiligencePoint, FounderRecord, Intro, StartupDil
 import { ageDays, rankInvestors } from "@/lib/leadline/rank";
 import { stageKey } from "@/lib/leadline/twins";
 import { fmtEur, fmtMonth } from "@/lib/leadline/format";
-import { calaMode } from "./client";
-import { computeFit } from "./match";
+import { refreshCalaMode } from "./client";
+import { agentMatch, computeFit, founderKey, investorKey } from "./match";
 import { getComparableDeals, getCompanyRounds, getInvestorRounds, getSimilarCompanies, getTwins } from "./leadline";
 
 const STAGE_ORDER = ["pre-seed", "seed", "series-a", "series-b", "series-c"];
@@ -29,7 +29,12 @@ export async function startupDiligence(
 ): Promise<StartupDiligence> {
   const p = founder.profile;
   const [fit, twins, comparable] = await Promise.all([
-    computeFit(p, investor),
+    Promise.all([
+      agentMatch(investorKey(investor), founderKey(founder.id)),
+      agentMatch(founderKey(founder.id), investorKey(investor)),
+    ]).then(([match, theirs]) =>
+      computeFit(p, investor, match, undefined, { viewer: "investor", score: theirs?.score ?? null }),
+    ),
     getTwins(p),
     getComparableDeals(p),
   ]);
@@ -118,7 +123,7 @@ export async function startupDiligence(
   }
 
   return {
-    mode: calaMode(),
+    mode: await refreshCalaMode(),
     founder: {
       id: founder.id,
       profile: p,
@@ -208,7 +213,7 @@ export async function companyDiligence(company: string, investor: string): Promi
   risks.push({ text: "Not on Leadline yet: no founder profile or intro channel. Reach out directly.", sources: [] });
 
   return {
-    mode: calaMode(),
+    mode: await refreshCalaMode(),
     company,
     description,
     industry,

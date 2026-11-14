@@ -1,27 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell, ChevronRight, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import {
   ConflictBadge,
   DealClaim,
   ErrorBox,
+  PendingBox,
   PoweredByCala,
   ScoreBar,
   SynergyBadge,
   TimingBadge,
   TwinBadge,
-  postJson,
   useRequiredProfile,
+  useShortlist,
 } from "@/components/leadline/shared";
 import { cn } from "@/lib/utils";
 import { isActive } from "@/lib/leadline/rank";
 import { useUnreadSignals } from "@/lib/leadline/store";
 import { daysAgoText, dealPhrase, fmtEur } from "@/lib/leadline/format";
 import type { RankedInvestor, Signal } from "@/lib/leadline/types";
-import { regionLabel, sectorLabel, stageLabel, type ShortlistResponse } from "@/lib/leadline/types";
+import { regionLabel, sectorLabel, stageLabel } from "@/lib/leadline/types";
 
 const SORTS: { key: string; label: string; value: (i: RankedInvestor) => number }[] = [
   { key: "lead", label: "Lead index", value: (i) => i.score },
@@ -68,23 +69,19 @@ function Toggle({ active, onClick, children }: { active: boolean; onClick: () =>
 export default function ShortlistPage() {
   const profile = useRequiredProfile();
   const unread = useUnreadSignals();
-  const [data, setData] = useState<ShortlistResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [activeMonths, setActiveMonths] = useState(12);
+  const { state: list, retry } = useShortlist(profile);
+  const data = list.kind === "ready" ? list.data : null;
+  const error = list.kind === "error" ? list.message : null;
+  // Every investor the agent ranked is shown at first; the filters only narrow the list.
+  const [activeMonths, setActiveMonths] = useState(0);
   const [hideConflicts, setHideConflicts] = useState(false);
-  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(true);
+  const clearFilters = () => {
+    setActiveMonths(0);
+    setHideConflicts(false);
+    setShowFollowers(true);
+  };
   const [sort, setSort] = useState("lead");
-
-  useEffect(() => {
-    if (!profile) return;
-    const ctrl = new AbortController();
-    setData(null);
-    setError(null);
-    postJson<ShortlistResponse>("/api/shortlist", profile, ctrl.signal)
-      .then(setData)
-      .catch((e) => e.name !== "AbortError" && setError(e.message));
-    return () => ctrl.abort();
-  }, [profile]);
 
   const visible = useMemo(() => {
     if (!data) return [];
@@ -132,9 +129,11 @@ export default function ShortlistPage() {
 
       {error && <ErrorBox message={error} />}
 
-      {!data && !error && (
+      {list.kind === "pending" && <PendingBox pending={list.pending} gaveUp={list.gaveUp} onRetry={retry} />}
+
+      {list.kind === "loading" && (
         <div className="flex items-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Pulling comparable rounds from Cala…
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading your shortlist…
         </div>
       )}
 
@@ -173,7 +172,16 @@ export default function ShortlistPage() {
           <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
             {visible.length === 0 && (
               <div className="p-8 text-center text-sm text-muted-foreground">
-                No investors match these filters. Try widening the activity window.
+                {data.investors.length === 0 ? (
+                  "No investors ranked for your round yet. Save your profile again on My startup to re-rank."
+                ) : (
+                  <>
+                    Your filters hide all {data.investors.length} ranked investor{data.investors.length === 1 ? "" : "s"}.{" "}
+                    <button type="button" onClick={clearFilters} className="font-medium text-primary hover:underline">
+                      Clear filters
+                    </button>
+                  </>
+                )}
               </div>
             )}
             {visible.map((inv, idx) => (

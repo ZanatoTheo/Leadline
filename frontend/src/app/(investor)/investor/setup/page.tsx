@@ -53,12 +53,13 @@ export default function InvestorSetupPage() {
   const confirm = async () => {
     if (!picked) return;
     setSaving(true);
+    setError(null);
     try {
       await postJson("/api/investor-fund", { investor: picked });
       // Full reload so the server layout picks up the fund on your account.
       window.location.assign("/investor/today");
     } catch (e) {
-      setError((e as Error).message);
+      setError(`${picked} wasn't saved to your account. Press the button again to retry. ${(e as Error).message}`);
       setSaving(false);
     }
   };

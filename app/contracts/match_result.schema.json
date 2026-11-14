@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft-2020-12/schema",
+  "$id": "cala-leads/match_result.schema.json",
+  "title": "Match result (cala-leads plugin output)",
+  "type": "object",
+  "required": ["schema_version", "status", "run_id", "generated_at", "request", "matches", "rejected", "evidence", "warnings", "stats"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "status": {"enum": ["ok", "partial", "error"]},
+    "run_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string"},
+    "request": {"type": "object"},
+    "matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["candidate_id", "candidate_type", "rank", "score", "score_parts", "role", "active", "confidence", "reasons"],
+        "properties": {
+          "candidate_id": {"type": "string"},
+          "candidate_type": {"enum": ["investor", "company"]},
+          "rank": {"type": "integer", "minimum": 1},
+          "score": {"type": "number", "minimum": 0, "maximum": 1},
+          "score_parts": {"type": "object", "additionalProperties": {"type": "number"}},
+          "role": {"enum": ["lead", "participant", "unknown"]},
+          "active": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": {"type": "string"},
+              "last_lead_date": {"type": ["string", "null"]},
+              "evidence": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["text", "evidence"],
+              "properties": {
+                "text": {"type": "string"},
+                "evidence": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "rejected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["candidate_id", "reason", "detail"],
+        "properties": {
+          "candidate_id": {"type": "string"},
+          "reason": {"enum": ["follower_only", "inactive", "stage_mismatch", "sector_mismatch", "size_mismatch", "out_of_region"]},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"enum": ["dataset", "web"]},
+          "ref": {"type": "string"},
+          "url": {"type": "string"},
+          "quote": {"type": "string"},
+          "date": {"type": "string"},
+          "fetched_at": {"type": "string"}
+        }
+      }
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "stats": {"type": "object"}
+  }
+}

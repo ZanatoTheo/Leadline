@@ -1,21 +1,12 @@
-// Cala API client (server-side only).
+// Cala data, as the app sees it (server-side only).
 //
-// Two transports share one interface:
-//   live       → https://api.cala.ai (needs CALA_API_KEY)
-//   simulated  → ./simulator.ts, which returns responses in the same shape
-//
-// Simulated is the default until CALA_API_KEY is set. Force it with
-// CALA_MODE=simulated. The rest of the app never knows which one answered,
-// so switching to real data is a config change, not a code change.
+// The TS server no longer calls Cala. Cala facts are pulled by the Leadline
+// agent and stored in the Leadline database; every page reads them from the
+// local Leadline service (src/lib/server/leadline-service.ts). This file keeps
+// the Cala shapes (./simulator.ts and ./normalize.ts still use them), the data
+// mode the UI shows, and entity search.
 
-import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { simulateEntitySearch, simulateQuery, simulateSearch } from "./simulator";
-
-const CALA_BASE = "https://api.cala.ai/v1";
-const CACHE_DIR = path.join(process.cwd(), ".cala-cache");
-const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+import * as service from "@/lib/server/leadline-service";
 
 export interface CalaEntity {
   id: string;
@@ -56,63 +47,39 @@ export type QueryHint =
 
 export type CalaMode = "live" | "simulated";
 
+// "live" once the database holds facts pulled from Cala; read from the service's
+// GET /status and kept for a minute.
+const MODE_TTL_MS = 60_000;
+let mode: CalaMode = "simulated";
+let checkedAt = 0;
+let pending: Promise<CalaMode> | null = null;
+
+/** The data mode, re-read from the service when the cached value is over a minute old. Never throws. */
+export function refreshCalaMode(): Promise<CalaMode> {
+  if (Date.now() - checkedAt < MODE_TTL_MS) return Promise.resolve(mode);
+  pending ??= service
+    .status()
+    .then((s) => (mode = s.mode === "live" ? "live" : "simulated"))
+    .catch(() => mode)
+    .finally(() => {
+      checkedAt = Date.now();
+      pending = null;
+    });
+  return pending;
+}
+
+/** The cached data mode (no wait); starts a refresh when it is stale. */
 export function calaMode(): CalaMode {
-  if (process.env.CALA_MODE === "simulated") return "simulated";
-  return process.env.CALA_API_KEY ? "live" : "simulated";
+  void refreshCalaMode();
+  return mode;
 }
 
-async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
-  const file = path.join(CACHE_DIR, createHash("sha1").update(key).digest("hex") + ".json");
-  try {
-    const raw = JSON.parse(await readFile(file, "utf8")) as { at: number; data: T };
-    if (Date.now() - raw.at < CACHE_TTL_MS) return raw.data;
-  } catch {
-    // cache miss
-  }
-  const data = await load();
-  await mkdir(CACHE_DIR, { recursive: true });
-  await writeFile(file, JSON.stringify({ at: Date.now(), data }));
-  return data;
-}
-
-async function post<T>(endpoint: string, input: string): Promise<T> {
-  return cached(`${endpoint}:${input}`, async () => {
-    const res = await fetch(`${CALA_BASE}${endpoint}`, {
-      method: "POST",
-      headers: {
-        "X-API-KEY": process.env.CALA_API_KEY ?? "",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ input }),
-    });
-    if (!res.ok) {
-      throw new Error(`Cala ${endpoint} failed: ${res.status} ${await res.text()}`);
-    }
-    return (await res.json()) as T;
-  });
-}
-
-export async function knowledgeQuery(input: string, hint: QueryHint): Promise<CalaQueryResponse> {
-  if (calaMode() === "simulated") return simulateQuery(hint);
-  return post<CalaQueryResponse>("/knowledge/query", input);
-}
-
-export async function knowledgeSearch(input: string, hint: QueryHint): Promise<CalaSearchResponse> {
-  if (calaMode() === "simulated") return simulateSearch(hint);
-  return post<CalaSearchResponse>("/knowledge/search", input);
-}
-
-/** GET /v1/entities?name=… — fuzzy entity search by name. */
+/**
+ * Names containing `name`: Cala entities in the database first, then companies
+ * and investors seen in its rounds. With `entityTypes`, only those types.
+ */
 export async function entitySearch(name: string, entityTypes: string[] = [], limit = 8): Promise<CalaEntity[]> {
-  if (calaMode() === "simulated") return simulateEntitySearch(name, limit);
-  const params = new URLSearchParams({ name, limit: String(limit) });
-  for (const t of entityTypes) params.append("entity_types", t);
-  return cached(`entities:${params}`, async () => {
-    const res = await fetch(`${CALA_BASE}/entities?${params}`, {
-      headers: { "X-API-KEY": process.env.CALA_API_KEY ?? "" },
-    });
-    if (!res.ok) throw new Error(`Cala /entities failed: ${res.status}`);
-    const data = (await res.json()) as { entities: CalaEntity[] };
-    return data.entities ?? [];
-  });
+  const hits = await service.entities(name, entityTypes.length ? 50 : limit);
+  const wanted = new Set(entityTypes.map((t) => t.toLowerCase()));
+  return (wanted.size ? hits.filter((e) => wanted.has(e.entity_type.toLowerCase())) : hits).slice(0, limit);
 }

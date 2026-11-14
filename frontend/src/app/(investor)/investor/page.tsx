@@ -215,6 +215,12 @@ export default function InvestorDealFlowPage() {
                 Found in Cala, not on Leadline yet. &quot;Raising soon&quot; means 12+ months since their last round.
               </p>
             </div>
+            {discover.nextTwins.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No look-alikes yet. This needs a portfolio company that later raised a bigger round, and the data has none
+                for your fund.
+              </p>
+            )}
             <div className="grid gap-3 md:grid-cols-2">
               {discover.nextTwins.map((t) => (
                 <Link

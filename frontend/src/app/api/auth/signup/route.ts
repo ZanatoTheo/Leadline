@@ -1,6 +1,7 @@
+import { withService } from "@/lib/server/leadline-service";
 import { signUp } from "@/lib/server/auth";
 
-export async function POST(request: Request) {
+export const POST = withService(async (request: Request) => {
   const b = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const role = b?.role === "investor" ? "investor" : b?.role === "founder" ? "founder" : null;
   const name = typeof b?.name === "string" ? b.name.trim().slice(0, 80) : "";
@@ -12,4 +13,4 @@ export async function POST(request: Request) {
   const err = await signUp({ role, name, email, password });
   if (err) return Response.json({ error: err }, { status: 409 });
   return Response.json({ role });
-}
+});

@@ -3,23 +3,27 @@
 import { useEffect, useState } from "react";
 import { Bell, Check, Handshake, Landmark, Loader2, Send, Sparkles, X } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ErrorBox, PoweredByCala, postJson, useRequiredProfile } from "@/components/leadline/shared";
+import { ErrorBox, PendingBox, PoweredByCala, useRequiredProfile, useShortlist } from "@/components/leadline/shared";
 import { ActionItem, ProgressStrip, TodayGroup, greeting } from "@/components/leadline/today";
 import { useSession } from "@/components/leadline/session";
 import { useLeadline, useUnreadSignals } from "@/lib/leadline/store";
 import type { Intro } from "@/lib/leadline/match-types";
-import type { RankedInvestor, ShortlistResponse } from "@/lib/leadline/types";
+import type { RankedInvestor } from "@/lib/leadline/types";
 import { stageLabel } from "@/lib/leadline/types";
 import { daysAgoText, dealPhrase, fmtEur } from "@/lib/leadline/format";
 import { ageDays } from "@/lib/leadline/rank";
 
-/** Best investors to approach now: deploying first, then lead index; skip conflicts and anyone already contacted. */
+/**
+ * Best investors to approach now, from the agent's ranking: deploying first, then those who led rounds, then
+ * score; skip direct conflicts and anyone already contacted.
+ */
 function pitchNow(investors: RankedInvestor[], contacted: Set<string>): RankedInvestor[] {
   return investors
-    .filter((i) => i.ledCount > 0 && i.conflict.level !== "direct" && !contacted.has(i.name))
+    .filter((i) => i.conflict.level !== "direct" && !contacted.has(i.name))
     .sort(
       (a, b) =>
         Number(b.timingStatus === "deploying") - Number(a.timingStatus === "deploying") ||
+        Number(b.ledCount > 0) - Number(a.ledCount > 0) ||
         (b.twinsLedCount ?? 0) - (a.twinsLedCount ?? 0) ||
         b.score - a.score,
     )
@@ -32,17 +36,15 @@ export default function FounderTodayPage() {
   const unreadSignals = useUnreadSignals();
   const signalsCheckedAt = useLeadline((s) => s.signalsCheckedAt);
   const [intros, setIntros] = useState<Intro[] | null>(null);
-  const [shortlist, setShortlist] = useState<ShortlistResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { state: list, retry } = useShortlist(profile);
+  const shortlist = list.kind === "ready" ? list.data : null;
 
   useEffect(() => {
     if (!profile) return;
     fetch("/api/intros")
       .then((r) => r.json())
       .then((d) => setIntros(d.intros ?? []))
-      .catch((e) => setError(e.message));
-    postJson<ShortlistResponse>("/api/shortlist", profile)
-      .then(setShortlist)
       .catch((e) => setError(e.message));
   }, [profile]);
 
@@ -54,7 +56,18 @@ export default function FounderTodayPage() {
   const waiting = sent.filter((i) => i.status === "pending");
   const contacted = new Set(all.map((i) => i.investor));
   const recommendations = shortlist ? pitchNow(shortlist.investors, contacted) : [];
-  const loading = !intros || !shortlist || !signalsCheckedAt;
+  const loading = !intros || list.kind === "loading" || !signalsCheckedAt;
+  const approachEmpty = {
+    loading: "Loading…",
+    pending: "Your shortlist appears here once the ranking above is done.",
+    error: "No shortlist yet: see the message above.",
+    ready:
+      shortlist?.investors.length === 0
+        ? "No investors ranked for your round yet. Save your profile again on My startup to re-rank."
+        : shortlist?.investors.every((i) => contacted.has(i.name))
+          ? "You've contacted everyone on your shortlist."
+          : "Your other ranked investors back a competitor. See Who to pitch.",
+  }[list.kind];
 
   return (
     <AppLayout>
@@ -72,6 +85,12 @@ export default function FounderTodayPage() {
       </div>
 
       {error && <ErrorBox message={error} />}
+      {list.kind === "error" && <ErrorBox message={list.message} />}
+      {list.kind === "pending" && (
+        <div className="mb-6">
+          <PendingBox pending={list.pending} gaveUp={list.gaveUp} onRetry={retry} />
+        </div>
+      )}
 
       <div className="mb-6">
         <ProgressStrip
@@ -87,7 +106,7 @@ export default function FounderTodayPage() {
 
       {loading && !error && (
         <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Checking Cala and your intros…
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading your intros and shortlist…
         </div>
       )}
 
@@ -158,7 +177,7 @@ export default function FounderTodayPage() {
           ))}
         </TodayGroup>
 
-        <TodayGroup title="Who to approach next" empty={shortlist ? "You've contacted everyone on your shortlist." : "Loading…"}>
+        <TodayGroup title="Who to approach next" empty={approachEmpty}>
           {recommendations.map((i) => (
             <ActionItem
               key={i.slug}

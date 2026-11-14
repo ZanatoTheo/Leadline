@@ -9,7 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DEMO_PERSONA, useLeadline } from "@/lib/leadline/store";
 import { REGIONS, SECTORS, STAGES, type FounderProfile } from "@/lib/leadline/types";
-import { PoweredByCala, syncFounder, useCalaMode, useHydrated, useRequiredProfileOptional } from "@/components/leadline/shared";
+import {
+  ErrorBox,
+  PoweredByCala,
+  postJson,
+  useCalaMode,
+  useHydrated,
+  useRequiredProfileOptional,
+} from "@/components/leadline/shared";
 import { useSession } from "@/components/leadline/session";
 
 const EMPTY: FounderProfile = {
@@ -46,6 +53,7 @@ export default function OnboardingPage() {
   const setDiscoverableStore = useLeadline((s) => s.setDiscoverable);
   const [discoverable, setDiscoverable] = useState(session.discoverable);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const mode = useCalaMode();
   const [form, setForm] = useState<FounderProfile>(EMPTY);
   const [competitors, setCompetitors] = useState("");
@@ -67,14 +75,21 @@ export default function OnboardingPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile({
-      ...form,
-      competitors: competitors.split(",").map((c) => c.trim()).filter(Boolean),
-    });
-    setDiscoverableStore(discoverable);
+    const profile = { ...form, competitors: competitors.split(",").map((c) => c.trim()).filter(Boolean) };
     setSaving(true);
-    // Save to your account so investors can receive your intro requests.
-    await syncFounder().catch(() => null);
+    setError(null);
+    // Save to your account first: the agent builds your profile and ranking from it. The local copy changes only
+    // once the server has it, so a failed save never leaves the pages showing a profile the server doesn't have.
+    let saved: FounderProfile;
+    try {
+      saved = (await postJson<{ id: string; profile: FounderProfile }>("/api/founders", { profile, discoverable })).profile;
+    } catch (err) {
+      setError(`Your profile wasn't saved. Your answers are still here, so you can try again. ${(err as Error).message}`);
+      setSaving(false);
+      return;
+    }
+    setProfile(saved);
+    setDiscoverableStore(discoverable);
     router.push("/today");
   };
 
@@ -188,8 +203,10 @@ export default function OnboardingPage() {
             </span>
           </label>
 
+          {error && <ErrorBox message={error} />}
+
           <Button type="submit" className="w-full" disabled={!valid || saving}>
-            Find my funding twins <ArrowRight className="h-4 w-4" />
+            {saving ? "Saving…" : "Find my funding twins"} <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
       </main>

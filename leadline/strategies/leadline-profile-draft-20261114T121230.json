@@ -1,0 +1,78 @@
+{
+  "id": "leadline-profile-draft-20261114T121230",
+  "plugin": "leadline-profile",
+  "plugin_version": "0.1.0",
+  "status": "draft",
+  "base_model": {
+    "model": "claude-research",
+    "provider": "anthropic"
+  },
+  "tendencies": [
+    {
+      "id": "t-facts-first",
+      "text": "Start from cala_facts and the user's own fields; use web research to confirm them or fill gaps, and cite the page you read."
+    },
+    {
+      "id": "t-no-guessing",
+      "text": "A field you cannot support is null. Mark a field inferred only when it follows from cited facts (e.g. sectors from the product description)."
+    },
+    {
+      "id": "t-as-of",
+      "text": "When as_of is given, ignore every fact dated after it, including web pages about later rounds."
+    },
+    {
+      "id": "t-minimal-update",
+      "text": "On an update, keep every field the update and new evidence do not touch exactly as it was; never drop a sourced field without a change entry that says why."
+    },
+    {
+      "id": "t-rating-parts",
+      "text": "Rate each part from evidence: fit (clarity of sector and stage), traction (rounds, customers), team, activity (recent rounds or leads); total is the mean of the parts."
+    },
+    {
+      "id": "research-1",
+      "text": "Before you use any web page, confirm it is about the same company. Match on more than the name: website domain, country and sector should agree with cala_facts. If a page could belong to a different company with a similar name, leave the fact out and leave the field null. Don't guess.",
+      "sources": [
+        "https://faingezicht.com/articles/2024/09/03/entity-resolution/",
+        "https://dev.to/isabelle_dubuis_d858453d7/a-company-name-is-not-an-entity-14-tests-before-crm-import-1lf0",
+        "https://buildingfor.vc/guide/part-3-technical-foundations/entity-resolution"
+      ]
+    },
+    {
+      "id": "research-2",
+      "text": "Turn each cala_facts row into a dataset fact. Keep amount, currency, stage, round_date and investors exactly as given, in the quote and date. Treat 'Not disclosed' as unknown, not as a name. Never make a date more precise than the source: '2025' stays '2025'. Every non-null field must point to fact ids; use inferred: true only for a real inference, such as a stage implied by the round type.",
+      "sources": [
+        "https://support.crunchbase.com/hc/en-us/articles/30646679220115-Funding-Rounds-Filters-Definitions",
+        "https://data.crunchbase.com/v3.1/docs/funding-round"
+      ]
+    },
+    {
+      "id": "research-3",
+      "text": "Use the round label from the data to set stage; don't re-label it from round size. Compare the amount with typical ranges (seed about $1.5–6M, Series A about $10–25M). If a 'seed' round is far outside that range, keep the label, mention the gap in the rating reasoning, and use it as evidence of strong traction.",
+      "sources": [
+        "https://dealroom.net/faq/funding-stages",
+        "https://www.saastr.com/its-not-just-you-lead-vcs-are-taking-more-and-more-of-the-round/"
+      ]
+    },
+    {
+      "id": "research-4",
+      "text": "For investors, compute lead_share only from rounds where the lead is actually named, as rounds led divided by rounds with known roles. A lead sets the terms and price and usually writes the largest check. last_lead_date is the announced date of the latest round it led. If there is no lead data, leave both null; never fill them in from mere participation.",
+      "sources": [
+        "https://support.crunchbase.com/hc/en-us/articles/30646679220115-Funding-Rounds-Filters-Definitions",
+        "https://www.crv.com/content/lead-investor",
+        "https://valueaddvc.com/blog/lead-investor-vs-follow-on-investor-roles-rights-and-how-syndication-works",
+        "https://news.crunchbase.com/venture/data-top-active-us-investors-general-catalyst-a16z-q2-2026/"
+      ]
+    },
+    {
+      "id": "research-5",
+      "text": "Build the rating from parts in [0, 1]: fit, traction (amount raised compared with stage benchmarks), team, and activity (how recent the last round or lead was). Each part must cite fact ids. Score a part conservatively near 0.5 when evidence is thin. When revising a profile, change only fields the update or a new fact supports, and log each change with field, old, new and reason.",
+      "sources": [
+        "https://dealroom.net/faq/funding-stages",
+        "https://news.crunchbase.com/venture/most-active-vc-startup-investors-2025-a16z-accel-sequoia-y-combinator/",
+        "https://parallel.ai/articles/entity-matching"
+      ]
+    }
+  ],
+  "created_at": "2026-11-14T12:12:30+00:00",
+  "notes": "Drafted by the training research step from web search. Not validated."
+}

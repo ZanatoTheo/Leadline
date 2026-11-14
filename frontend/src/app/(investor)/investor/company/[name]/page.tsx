@@ -77,6 +77,9 @@ export default function CompanyDiligencePage() {
           </Section>
 
           <Section title="Backers" icon={Users}>
+            {data.backers.length === 0 && (
+              <p className="text-sm text-muted-foreground">No investors are named for these rounds in the data.</p>
+            )}
             <ul className="grid gap-1.5 text-sm sm:grid-cols-2">
               {data.backers.map((b) => (
                 <li key={b.name} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">

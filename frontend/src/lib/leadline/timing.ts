@@ -42,6 +42,10 @@ export function assessTiming(ledDeals: Deal[], funds: FundClose[], now = Date.no
     status = "deploying";
     const m = Math.max(1, Math.round(fundAge! / 30.44));
     headline = `New fund ${m} month${m === 1 ? "" : "s"} ago: in deployment mode.`;
+  } else if (!ages.length) {
+    // No leads in the data says nothing about their pace (the data may just not cover them).
+    status = "unknown";
+    headline = "Not enough rounds in the data to judge their pace.";
   } else if (acceleratingPace) {
     status = "deploying";
     headline = "Leading more rounds than usual right now.";

@@ -81,7 +81,7 @@ export function RoundPath({ rounds, highlight }: { rounds: Deal[]; highlight?: (
                 {fmtEur(r.amountEurM)} · {fmtMonth(r.announced)}
               </span>
             </div>
-            <div className="mt-1">Led by {r.leadInvestors.join(", ") || "undisclosed"}</div>
+            <div className="mt-1">{r.leadInvestors.length ? `Led by ${r.leadInvestors.join(", ")}` : "Lead not disclosed"}</div>
             {r.otherInvestors.length > 0 && (
               <div className="text-muted-foreground">With {r.otherInvestors.join(", ")}</div>
             )}

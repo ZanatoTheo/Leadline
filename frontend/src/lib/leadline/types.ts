@@ -96,7 +96,8 @@ export interface TwinsResponse {
   reachedNext: number;
 }
 
-export type TimingStatus = "deploying" | "steady" | "slowing";
+/** "unknown": no leads in the data and no fresh fund, so the pace can't be judged. */
+export type TimingStatus = "deploying" | "steady" | "slowing" | "unknown";
 
 export interface Timing {
   status: TimingStatus;
@@ -168,6 +169,17 @@ export interface ShortlistResponse {
   roundsAnalysed: number;
   sourcesCited: number;
   investors: RankedInvestor[];
+}
+
+/** `/api/shortlist` answers this with HTTP 202 while the agent is still working on the founder's data. */
+export interface ShortlistPending {
+  status: "building";
+  /** The step running now: the founder's profile first, then the investor ranking. */
+  step: "profile" | "ranking";
+  /** What is happening now, in plain words. */
+  message: string;
+  /** What comes after this step, or null when it is the last one. */
+  next: string | null;
 }
 
 export interface Signal {
