@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Database, ExternalLink, Gauge, GitBranch, Handshake, ShieldAlert } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ExternalLink, Gauge, GitBranch, Handshake, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Conflict, Deal, FounderProfile, Source, TimingStatus } from "@/lib/leadline/types";
 import { useLeadline } from "@/lib/leadline/store";
@@ -61,20 +61,15 @@ export function useCalaMode(): CalaMode | null {
 }
 
 export function PoweredByCala({ mode, className }: { mode?: CalaMode | null; className?: string }) {
+  if (mode !== "simulated") return null;
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground",
+        "inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400",
         className,
       )}
     >
-      <Database className="h-3 w-3 text-primary" />
-      Powered by <span className="font-semibold text-foreground">Cala</span>
-      {mode === "simulated" && (
-        <span className="ml-1 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-          simulated data
-        </span>
-      )}
+      simulated data
     </span>
   );
 }

@@ -76,7 +76,6 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <a href="#investors" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">For investors</a>
             <a href="#pricing" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline">Pricing</a>
-            <PoweredByCala mode={mode} className="hidden sm:inline-flex" />
             <Link href="/login">
               <Button size="sm" variant="ghost">Log in</Button>
             </Link>
