@@ -1,0 +1,7 @@
+{
+  "venus_version": "1",
+  "plugin": "toy-sentiment",
+  "mode": "run",
+  "strategy": "toy-validated",
+  "input": {"text": "This is not good"}
+}

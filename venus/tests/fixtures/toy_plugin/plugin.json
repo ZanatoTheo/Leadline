@@ -1,0 +1,11 @@
+{
+  "name": "toy-sentiment",
+  "version": "1.0.0",
+  "brief": "Label a short text as positive or negative.",
+  "input_schema": "input.schema.json",
+  "output_schema": "output.schema.json",
+  "checker": "checker:check",
+  "seed_tendencies": [
+    {"id": "t-negation", "text": "Treat 'not' before a positive word as negative."}
+  ]
+}

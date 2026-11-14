@@ -105,8 +105,6 @@ app/data/
 # Agent injected by scripts/inject_agent.sh (generated from venus export)
 leadline/agent/
 
-# Venus is its own project (separate repo); not part of this push
-venus/
 
 # Training run records
 leadline/runs/

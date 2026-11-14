@@ -1,0 +1,9 @@
+{
+  "venus_version": "1",
+  "plugin": "toy-sentiment",
+  "mode": "training",
+  "cases": [
+    {"id": "c1", "input": {"text": "I love this"}, "expected": {"label": "positive"}},
+    {"id": "c2", "input": {"text": "This is not good"}, "expected": {"label": "negative"}}
+  ]
+}

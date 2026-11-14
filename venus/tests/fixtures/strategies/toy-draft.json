@@ -1,0 +1,9 @@
+{
+  "id": "toy-draft",
+  "plugin": "toy-sentiment",
+  "plugin_version": "1.0.0",
+  "status": "draft",
+  "base_model": {"model": "fake-model"},
+  "tendencies": [],
+  "created_at": "2026-11-13T22:00:00Z"
+}

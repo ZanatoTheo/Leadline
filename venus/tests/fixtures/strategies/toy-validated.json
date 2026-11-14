@@ -1,0 +1,12 @@
+{
+  "id": "toy-validated",
+  "plugin": "toy-sentiment",
+  "plugin_version": "1.0.0",
+  "status": "validated",
+  "base_model": {"model": "fake-model", "key_env": "VERDA_API_KEY"},
+  "tendencies": [
+    {"id": "t-negation", "text": "Treat 'not' before a positive word as negative."}
+  ],
+  "created_at": "2026-11-13T22:00:00Z",
+  "notes": "Hand-written for tests."
+}

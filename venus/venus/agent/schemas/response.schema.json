@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "venus/response.schema.json",
+  "title": "Venus response",
+  "type": "object",
+  "required": ["venus_version", "status", "outputs", "trace_id", "usage", "warnings"],
+  "properties": {
+    "venus_version": {"const": "1"},
+    "plugin": {"type": "string"},
+    "mode": {"enum": ["training", "run"]},
+    "strategy": {"type": "string"},
+    "draft_strategy": {"type": "string", "description": "Training only: id of the draft strategy the research step saved."},
+    "status": {"enum": ["ok", "partial", "error"]},
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["output"],
+        "properties": {
+          "case_id": {"type": "string"},
+          "output": {},
+          "sources": {"type": "array", "items": {"type": "string"}},
+          "status": {"enum": ["ok", "error"]},
+          "error": {"$ref": "#/$defs/error"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["case_id", "total", "parts", "reasons"],
+        "properties": {
+          "case_id": {"type": "string"},
+          "total": {"type": "number", "minimum": 0, "maximum": 1},
+          "parts": {"type": "object", "additionalProperties": {"type": "number"}},
+          "reasons": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "trace_id": {"type": "string", "minLength": 1},
+    "usage": {
+      "type": "object",
+      "properties": {
+        "model_calls": {"type": "integer", "minimum": 0},
+        "input_tokens": {"type": "integer", "minimum": 0},
+        "output_tokens": {"type": "integer", "minimum": 0},
+        "web_calls": {"type": "integer", "minimum": 0},
+        "cache_hits": {"type": "integer", "minimum": 0},
+        "seconds": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "error": {"$ref": "#/$defs/error"}
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {"not": {"properties": {"status": {"const": "error"}}}},
+      "then": {"required": ["plugin", "mode"]}
+    },
+    {
+      "if": {"required": ["mode"], "properties": {"mode": {"const": "run"}}},
+      "then": {"not": {"required": ["scores"]}}
+    },
+    {
+      "if": {"required": ["mode"], "properties": {"mode": {"const": "run"}, "status": {"not": {"const": "error"}}}},
+      "then": {"required": ["strategy"]}
+    },
+    {
+      "if": {"properties": {"status": {"const": "error"}}},
+      "then": {"required": ["error"]}
+    }
+  ],
+  "$defs": {
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"type": "string"},
+        "message": {"type": "string"},
+        "path": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

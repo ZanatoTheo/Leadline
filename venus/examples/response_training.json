@@ -1,0 +1,17 @@
+{
+  "venus_version": "1",
+  "plugin": "toy-sentiment",
+  "mode": "training",
+  "status": "ok",
+  "outputs": [
+    {"case_id": "c1", "output": {"label": "positive"}},
+    {"case_id": "c2", "output": {"label": "positive"}}
+  ],
+  "scores": [
+    {"case_id": "c1", "total": 1.0, "parts": {"label_match": 1.0}, "reasons": []},
+    {"case_id": "c2", "total": 0.0, "parts": {"label_match": 0.0}, "reasons": ["expected negative, got positive"]}
+  ],
+  "trace_id": "tr-20261113-2200-0001",
+  "usage": {"model_calls": 2, "input_tokens": 180, "output_tokens": 12, "seconds": 1.4},
+  "warnings": []
+}

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "venus"
+version = "0.1.0"
+description = "A general-purpose engine that runs behavioral-tendency strategies for any task defined by a plugin."
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = ["jsonschema>=4.23,<5", "openai>=2.54,<3", "httpx>=0.28,<0.29", "anthropic>=2.8,<3", "fastapi>=0.162,<1",
+                "uvicorn>=0.54,<1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<9"]
+
+[tool.setuptools]
+packages = ["venus", "venus.schemas", "venus.agent", "venus.agent.schemas"]
+
+[tool.setuptools.package-data]
+"venus.agent.schemas" = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
