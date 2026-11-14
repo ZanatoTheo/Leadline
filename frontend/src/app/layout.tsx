@@ -13,7 +13,7 @@ const fontSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Leadline — Fundraising Intelligence",
   description:
-    "Find investors most likely to lead your round. AI-powered intelligence beyond databases.",
+    "Leadline tells founders who is leading rounds like theirs this month, with proof. Powered by Cala.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

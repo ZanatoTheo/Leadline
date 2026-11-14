@@ -66,16 +66,22 @@ __pycache__/
 .Python
 *.egg
 *.egg-info/
-dist/
+/dist/
 eggs/
-parts/
-var/
+/parts/
+/var/
 sdist/
 develop-eggs/
 .installed.cfg
-lib/
-lib64/
+/lib/
+/lib64/
 venv/
 .venv/
-env/
+/env/
 .env/
+
+# Leadline Cala response cache
+frontend/.cala-cache/
+
+# Leadline demo data (founder profiles, intros)
+frontend/.leadline-data/
