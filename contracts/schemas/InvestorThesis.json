@@ -1,0 +1,343 @@
+{
+  "$ref": "#/definitions/InvestorThesis",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Breakout": {
+      "additionalProperties": false,
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "entry": {
+          "$ref": "#/definitions/Deal"
+        },
+        "later": {
+          "items": {
+            "$ref": "#/definitions/Deal"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "description",
+        "entry",
+        "later"
+      ],
+      "type": "object"
+    },
+    "Deal": {
+      "additionalProperties": false,
+      "properties": {
+        "amountEurM": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "announced": {
+          "type": "string"
+        },
+        "calaEntityId": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "companyDescription": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "leadInvestors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "otherInvestors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "round": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "company",
+        "companyDescription",
+        "industry",
+        "round",
+        "amountEurM",
+        "announced",
+        "leadInvestors",
+        "otherInvestors",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "FundClose": {
+      "additionalProperties": false,
+      "properties": {
+        "closed": {
+          "type": "string"
+        },
+        "fundName": {
+          "type": "string"
+        },
+        "investor": {
+          "type": "string"
+        },
+        "sizeEurM": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "investor",
+        "fundName",
+        "sizeEurM",
+        "closed",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "InvestorThesis": {
+      "additionalProperties": false,
+      "properties": {
+        "breakouts": {
+          "items": {
+            "$ref": "#/definitions/Breakout"
+          },
+          "type": "array"
+        },
+        "coInvestors": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "together": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "together"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "industries": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "number"
+              },
+              "industry": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "industry",
+              "count"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "investor": {
+          "type": "string"
+        },
+        "leadShare": {
+          "type": "number"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "simulated"
+          ],
+          "type": "string"
+        },
+        "roundsJoined": {
+          "type": "number"
+        },
+        "roundsLed": {
+          "type": "number"
+        },
+        "stages": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "led": {
+                "type": "number"
+              },
+              "stage": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "stage",
+              "led"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "timing": {
+          "$ref": "#/definitions/Timing"
+        },
+        "typicalLeadCheck": {
+          "additionalProperties": false,
+          "properties": {
+            "maxEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "medianEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "minEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "minEurM",
+            "maxEurM",
+            "medianEurM"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "investor",
+        "mode",
+        "roundsLed",
+        "roundsJoined",
+        "leadShare",
+        "stages",
+        "industries",
+        "typicalLeadCheck",
+        "breakouts",
+        "timing",
+        "coInvestors"
+      ],
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "A document Cala cites for a claim.",
+      "properties": {
+        "publisher": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "title",
+        "url"
+      ],
+      "type": "object"
+    },
+    "Timing": {
+      "additionalProperties": false,
+      "properties": {
+        "avgLeadsPer90": {
+          "type": "number"
+        },
+        "daysSinceLastLead": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "headline": {
+          "type": "string"
+        },
+        "latestFund": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FundClose"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leadsLast90": {
+          "type": "number"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/definitions/TimingStatus"
+        }
+      },
+      "required": [
+        "status",
+        "headline",
+        "latestFund",
+        "leadsLast90",
+        "avgLeadsPer90",
+        "daysSinceLastLead",
+        "reasons"
+      ],
+      "type": "object"
+    },
+    "TimingStatus": {
+      "description": "\"unknown\": no leads in the data and no fresh fund, so the pace can't be judged.",
+      "enum": [
+        "deploying",
+        "steady",
+        "slowing",
+        "unknown"
+      ],
+      "type": "string"
+    }
+  }
+}

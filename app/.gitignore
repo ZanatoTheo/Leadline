@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/cache/
+data/runs/
+data/dataset.json
+.pytest_cache/
+.venus_cache/

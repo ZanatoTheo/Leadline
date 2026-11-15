@@ -1,0 +1,82 @@
+{
+  "$ref": "#/definitions/FounderProfile",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "FounderProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "competitors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "customers": {
+          "description": "Who the startup sells to, e.g. \"mid-size manufacturers\".",
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "oneLiner": {
+          "type": "string"
+        },
+        "raiseEurM": {
+          "type": "number"
+        },
+        "region": {
+          "$ref": "#/definitions/Region"
+        },
+        "sector": {
+          "$ref": "#/definitions/Sector"
+        },
+        "stage": {
+          "$ref": "#/definitions/Stage"
+        },
+        "startupName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "startupName",
+        "oneLiner",
+        "sector",
+        "stage",
+        "location",
+        "region",
+        "raiseEurM",
+        "competitors",
+        "customers"
+      ],
+      "type": "object"
+    },
+    "Region": {
+      "enum": [
+        "europe",
+        "nordics",
+        "uk",
+        "dach"
+      ],
+      "type": "string"
+    },
+    "Sector": {
+      "enum": [
+        "climate",
+        "fintech",
+        "ai",
+        "health",
+        "saas"
+      ],
+      "type": "string"
+    },
+    "Stage": {
+      "enum": [
+        "pre-seed",
+        "seed",
+        "series-a",
+        "series-b"
+      ],
+      "type": "string"
+    }
+  }
+}

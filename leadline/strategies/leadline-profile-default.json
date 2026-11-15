@@ -1,0 +1,34 @@
+{
+  "id": "leadline-profile-default",
+  "plugin": "leadline-profile",
+  "plugin_version": "0.1.0",
+  "status": "validated",
+  "base_model": {
+    "model": "claude-research",
+    "provider": "anthropic"
+  },
+  "tendencies": [
+    {
+      "id": "t-facts-first",
+      "text": "Start from cala_facts and the user's own fields; use web research to confirm them or fill gaps, and cite the page you read."
+    },
+    {
+      "id": "t-no-guessing",
+      "text": "A field you cannot support is null. Mark a field inferred only when it follows from cited facts (e.g. sectors from the product description)."
+    },
+    {
+      "id": "t-as-of",
+      "text": "When as_of is given, ignore every fact dated after it, including web pages about later rounds."
+    },
+    {
+      "id": "t-minimal-update",
+      "text": "On an update, keep every field the update and new evidence do not touch exactly as it was; never drop a sourced field without a change entry that says why."
+    },
+    {
+      "id": "t-rating-parts",
+      "text": "Rate each part from evidence: fit (clarity of sector and stage), traction (rounds, customers), team, activity (recent rounds or leads); total is the mean of the parts."
+    }
+  ],
+  "created_at": "2026-11-14T13:51:01+00:00",
+  "notes": "{\"trace_id\": \"452c563f06dd4a37a406ec073d6ed112\", \"from\": \"leadline-profile-draft-20261114T135101\", \"mean_score\": 0.6986, \"dropped_for_leak\": [{\"id\": \"research-1\", \"names\": [\"Mistral AI\", \"Fractile\"], \"text\": \"Treat cala_facts as a starting point, not as current truth. Search for the user's newest round before you set stage. Fractile's Cala row says seed 2025, but the web shows a $15M seed in Jul 2024, a ~$220M Series B in May 2026 and a $720M Series C in Nov 2026. Mistral raised a €1.7B Series C in Sep 2025. Set stage to the latest round and keep the older rows as dated facts.\"}, {\"id\": \"research-2\", \"names\": [\"Mistral AI\", \"Vaire Computing\"], \"text\": \"Check every Cala number and date against a primary report, and record each version as its own fact with a quote and date. Cala's Mistral seed is $115, but Reuters and Tech.eu report €105M (~$113M). Vaire's 2025 row matches a July 2024 round. Keep the original currency and date from the press, and if you convert, label the result as inferred.\"}, {\"id\": \"research-3\", \"names\": [\"Fractile\", \"Vaire Computing\"], \"text\": \"Do not leave investors as 'Not disclosed' without searching. Press releases usually name the leads and co-leads. Fractile's seed was co-led by Kindred, the NATO Innovation Fund and OSE. Vaire's was co-led by 7percent Ventures and Jude Gomila. Record each lead in a web fact. For investor lead_share, count co-leads as leads and divide by the rounds you actually found.\"}, {\"id\": \"research-4\", \"names\": [\"Vaire Computing\"], \"text\": \"Watch out for amounts that are really cumulative totals. Vaire's '$4.5M' is its total raised, and DCD says the seed itself was $4M. Store the round amount and the cumulative total as separate facts, quoting each one, so traction scores and check sizes are based on the right figure.\"}, {\"id\": \"research-5\", \"names\": [\"Mistral AI\", \"Fractile\"], \"text\": \"Base each rating part on fact ids. Score traction from the size and recency of the latest round (for example, ASML's €1.3B lead of Mistral's round). Score activity from how recent the rounds are. Lower confidence in a part when its facts conflict or are stale. In updates, change only the fields where new evidence beats the old fact, and give the old and new values plus the fact id in the reason.\"}], \"score_note\": \"scores were measured with every draft tendency, including any dropped_for_leak\", \"scores\": [{\"case_id\": \"profile-mistral-ai\", \"total\": 0.5333333333333333, \"parts\": {\"field_match\": 0.3333333333333333, \"sourced\": 1.0}, \"reasons\": [\"stage: got 'Series D', known 'seed'\", \"sectors: got ['AI / LLMs', 'AI infrastructure'], known ['AI', 'LLMs']\"]}, {\"case_id\": \"profile-fractile\", \"total\": 0.611111111111111, \"parts\": {\"field_match\": 0.4444444444444444, \"sourced\": 1.0}, \"reasons\": [\"stage: got 'Series C', known 'seed'\", \"sectors: got ['AI chips', 'AI inference hardware', 'Semiconductors'], known ['AI chips']\"]}, {\"case_id\": \"profile-vaire-computing\", \"total\": 0.7666666666666666, \"parts\": {\"field_match\": 0.6666666666666666, \"sourced\": 1.0}, \"reasons\": [\"sectors: got ['Semiconductors', 'Reversible computing', 'Energy-efficient computing', 'AI infrastructure'], known ['Computing', 'Energy']\"]}, {\"case_id\": \"profile-seva-money\", \"total\": 0.8833333333333333, \"parts\": {\"field_match\": 0.8333333333333334, \"sourced\": 1.0}, \"reasons\": [\"sectors: got ['Fintech', 'Remittances', 'Payments infrastructure', 'Stablecoins'], known ['Fintech', 'Remittances']\"]}], \"cases\": [\"profile-mistral-ai\", \"profile-fractile\", \"profile-vaire-computing\", \"profile-seva-money\"], \"gate\": {\"passed\": true, \"metrics\": {\"cases\": 4, \"model_calls_per_case_max\": 7, \"web_calls_per_case_max\": 6, \"input_tokens_per_call_est\": 1722, \"input_tokens_per_case_est\": 138054, \"limits\": {\"max_turns\": 5, \"max_web_calls\": 6}}}, \"promoted_at\": \"2026-11-14T13:51:01+00:00\"}"
+}

@@ -1,0 +1,60 @@
+{
+  "$ref": "#/definitions/Intro",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Intro": {
+      "additionalProperties": false,
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "founder-to-investor",
+            "investor-to-founder"
+          ],
+          "type": "string"
+        },
+        "founderId": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "investor": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "passReason": {
+          "type": "string"
+        },
+        "respondedAt": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/IntroStatus"
+        }
+      },
+      "required": [
+        "id",
+        "founderId",
+        "investor",
+        "direction",
+        "note",
+        "status",
+        "createdAt"
+      ],
+      "type": "object"
+    },
+    "IntroStatus": {
+      "enum": [
+        "pending",
+        "accepted",
+        "passed"
+      ],
+      "type": "string"
+    }
+  }
+}

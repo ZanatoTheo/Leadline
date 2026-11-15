@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "status": "ok",
+  "run_id": "mock-i2s-001",
+  "generated_at": "2026-11-13T12:00:00Z",
+  "request": {"direction": "investor_to_startups", "subject_id": "i_baltic_ventures", "top_k": 10, "as_of": "2026-11-13"},
+  "matches": [
+    {
+      "candidate_id": "c_quantlane",
+      "candidate_type": "company",
+      "rank": 1,
+      "score": 0.87,
+      "score_parts": {"thesis_fit": 0.35, "round_timing": 0.30, "lead_fit": 0.22},
+      "role": "lead",
+      "active": {"status": "active", "last_lead_date": "2025-08-30", "evidence": ["ev_q_r6"]},
+      "confidence": "high",
+      "reasons": [
+        {"text": "You led their €11M Series A in Aug 2025 — you already know the company.", "evidence": ["ev_q_r6"]},
+        {"text": "Fintech + AI fits your thesis exactly.", "evidence": ["ev_q_company"]}
+      ]
+    },
+    {
+      "candidate_id": "c_kittencode",
+      "candidate_type": "company",
+      "rank": 2,
+      "score": 0.79,
+      "score_parts": {"thesis_fit": 0.33, "round_timing": 0.24, "lead_fit": 0.22},
+      "role": "lead",
+      "active": {"status": "raising_soon", "last_lead_date": "2025-11-03", "evidence": ["ev_q_r2"]},
+      "confidence": "medium",
+      "reasons": [
+        {"text": "You led their €2.2M seed in Nov 2025; a Series A in 12–18 months is a natural follow-on.", "evidence": ["ev_q_r2"]},
+        {"text": "AI SaaS in Estonia matches your sector and geography focus.", "evidence": ["ev_q_company"]}
+      ]
+    },
+    {
+      "candidate_id": "c_lumiforge",
+      "candidate_type": "company",
+      "rank": 3,
+      "score": 0.61,
+      "score_parts": {"thesis_fit": 0.22, "round_timing": 0.26, "lead_fit": 0.13},
+      "role": "participant",
+      "active": {"status": "active", "last_lead_date": "2025-09-12", "evidence": ["ev_q_r1"]},
+      "confidence": "medium",
+      "reasons": [
+        {"text": "Co-invested (participant) in their seed; a Series A lead could fit your range.", "evidence": ["ev_q_r1"]},
+        {"text": "Cleantech is outside your core sectors, so fit is weaker.", "evidence": ["ev_q_company"]}
+      ]
+    }
+  ],
+  "rejected": [
+    {"candidate_id": "c_nordwave", "reason": "sector_mismatch", "detail": "Healthtech is outside your SaaS/AI/fintech thesis."},
+    {"candidate_id": "c_helixden", "reason": "sector_mismatch", "detail": "Biotech/agritech is outside your thesis."},
+    {"candidate_id": "c_polargrid", "reason": "size_mismatch", "detail": "Series A at €7.5M is at the top of your check range with weak SaaS fit."}
+  ],
+  "evidence": [
+    {"id": "ev_q_r6", "kind": "dataset", "ref": "cala:r_6", "url": "https://cala.ai/e/c_quantlane", "date": "2025-08-30", "quote": "Quantlane raised a €11M Series A led by Baltic Ventures."},
+    {"id": "ev_q_r2", "kind": "dataset", "ref": "cala:r_2", "url": "https://cala.ai/e/c_kittencode", "date": "2025-11-03", "quote": "Kittencode raised a €2.2M seed led by Baltic Ventures."},
+    {"id": "ev_q_r1", "kind": "dataset", "ref": "cala:r_1", "url": "https://cala.ai/e/c_lumiforge", "date": "2025-09-12", "quote": "Lumiforge raised a €1.8M seed led by Nordic Seed Partners; Baltic Ventures did not participate."},
+    {"id": "ev_q_company", "kind": "dataset", "ref": "cala:dataset", "quote": "Company sector, stage and country from the Cala dataset."}
+  ],
+  "warnings": [],
+  "stats": {"candidates_considered": 6, "matched": 3, "rejected": 3}
+}

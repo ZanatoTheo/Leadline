@@ -1,0 +1,32 @@
+{
+  "venus_version": "1",
+  "plugin": "leadline-match",
+  "mode": "run",
+  "strategy": "leadline-match-default",
+  "input": {
+    "subject": {
+      "id": "c_subject", "kind": "startup", "name": "Northstar Storage",
+      "website": "https://northstar.example", "description": "Grid battery software and storage controls.",
+      "country": "Finland", "stage": "seed", "sectors": ["climate", "software"],
+      "rating": {"total": 0.72, "parts": {"traction": 0.6, "team": 0.8}},
+      "facts": [{"id": "d-c_subject", "kind": "dataset", "ref": "company:c_subject"}]
+    },
+    "candidates": [
+      {
+        "id": "i_lead", "kind": "investor", "name": "Aurora Ventures", "website": "https://aurora.example",
+        "country": "Sweden", "stages": ["seed"], "sectors": ["climate", "energy"],
+        "check_size": {"min": 300000, "max": 3000000, "currency": "EUR"},
+        "lead_share": 0.6, "last_lead_date": "2024-11-02",
+        "facts": [{"id": "d-i_lead", "kind": "dataset", "ref": "investor:i_lead"}]
+      },
+      {
+        "id": "i_follower", "kind": "investor", "name": "Lake Angels", "website": "https://lakeangels.example",
+        "country": "Finland", "stages": ["seed"], "sectors": ["climate"],
+        "check_size": {"min": 25000, "max": 150000, "currency": "EUR"},
+        "lead_share": 0.0, "last_lead_date": null,
+        "facts": [{"id": "d-i_follower", "kind": "dataset", "ref": "investor:i_follower"}]
+      }
+    ],
+    "request": {"direction": "startup_to_investors", "top_k": 10, "as_of": "2026-11-13"}
+  }
+}

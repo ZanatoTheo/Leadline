@@ -1,0 +1,232 @@
+{
+  "$ref": "#/definitions/TwinsResponse",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Deal": {
+      "additionalProperties": false,
+      "properties": {
+        "amountEurM": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "announced": {
+          "type": "string"
+        },
+        "calaEntityId": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "companyDescription": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "leadInvestors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "otherInvestors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "round": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "company",
+        "companyDescription",
+        "industry",
+        "round",
+        "amountEurM",
+        "announced",
+        "leadInvestors",
+        "otherInvestors",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "A document Cala cites for a claim.",
+      "properties": {
+        "publisher": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "title",
+        "url"
+      ],
+      "type": "object"
+    },
+    "Twin": {
+      "additionalProperties": false,
+      "description": "A startup that was where the founder is now, and the rounds it raised.",
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "rounds": {
+          "items": {
+            "$ref": "#/definitions/Deal"
+          },
+          "type": "array"
+        },
+        "sharedTerms": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "description",
+        "sharedTerms",
+        "rounds"
+      ],
+      "type": "object"
+    },
+    "TwinsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "live",
+            "simulated"
+          ],
+          "type": "string"
+        },
+        "monthsToNext": {
+          "description": "Months from the founder's stage to the next round, for twins that made it.",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "pathLeads": {
+          "description": "Investors who led a round for any twin, most twins first.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "rounds": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "round": {
+                      "type": "string"
+                    },
+                    "twin": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "twin",
+                    "round"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "slug",
+              "rounds"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "reachedNext": {
+          "type": "number"
+        },
+        "sameStage": {
+          "additionalProperties": false,
+          "description": "Twins' rounds at the founder's stage.",
+          "properties": {
+            "count": {
+              "type": "number"
+            },
+            "maxEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "medianEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "minEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "count",
+            "minEurM",
+            "maxEurM",
+            "medianEurM"
+          ],
+          "type": "object"
+        },
+        "twins": {
+          "items": {
+            "$ref": "#/definitions/Twin"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "twins",
+        "pathLeads",
+        "sameStage",
+        "monthsToNext",
+        "reachedNext"
+      ],
+      "type": "object"
+    }
+  }
+}

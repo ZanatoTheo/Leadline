@@ -1,0 +1,32 @@
+{
+  "name": "leadline-profile",
+  "version": "0.1.0",
+  "brief": "Build the Leadline profile and initial rating of one user (a startup or an investor) from what they filled in, the Cala facts given in cala_facts, and web research. Profile fields: website, description, country, stage (startup), stages and check_size (investor), sectors, lead_share and last_lead_date (investor: share of its rounds it led, last lead). Keep every fact you use in profile.facts (id, kind dataset or web, ref or url, quote, date) and give each non-null field a sources entry: the fact ids, or inferred: true. Rating: parts in [0, 1] (e.g. fit, traction, team, activity) and total, with fact ids. When current and update are given, revise that profile: change only what the update or new evidence supports and list each change in changes with field, old, new and reason; otherwise changes is empty.",
+  "input_schema": "input.schema.json",
+  "output_schema": "output.schema.json",
+  "checker": "checker:check",
+  "web": true,
+  "cala": true,
+  "seed_tendencies": [
+    {
+      "id": "t-facts-first",
+      "text": "Start from cala_facts and the user's own fields; use web research to confirm them or fill gaps, and cite the page you read."
+    },
+    {
+      "id": "t-no-guessing",
+      "text": "A field you cannot support is null. Mark a field inferred only when it follows from cited facts (e.g. sectors from the product description)."
+    },
+    {
+      "id": "t-as-of",
+      "text": "When as_of is given, ignore every fact dated after it, including web pages about later rounds."
+    },
+    {
+      "id": "t-minimal-update",
+      "text": "On an update, keep every field the update and new evidence do not touch exactly as it was; never drop a sourced field without a change entry that says why."
+    },
+    {
+      "id": "t-rating-parts",
+      "text": "Rate each part from evidence: fit (clarity of sector and stage), traction (rounds, customers), team, activity (recent rounds or leads); total is the mean of the parts."
+    }
+  ]
+}

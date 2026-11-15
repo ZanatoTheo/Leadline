@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "leadline-profile/output.schema.json",
+  "title": "leadline-profile output: profile, rating, and the changes made to the current profile",
+  "type": "object",
+  "required": [
+    "profile",
+    "rating",
+    "changes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "$ref": "#/$defs/profile"
+    },
+    "rating": {
+      "type": "object",
+      "required": [
+        "total",
+        "parts",
+        "sources"
+      ],
+      "properties": {
+        "total": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "parts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "field",
+          "old",
+          "new",
+          "reason"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "old": {},
+          "new": {},
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nullable_string": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "profile": {
+      "description": "The user's profile: the leadline-match profile plus a sources map. Unknown fields are null or absent, never guessed.",
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "facts",
+        "sources"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "startup",
+            "investor"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "website": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "description": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "country": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "stage": {
+          "$ref": "#/$defs/nullable_string",
+          "description": "startup: its current stage"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "investor: stages it backs"
+        },
+        "sectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "check_size": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "min": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "max": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "currency": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "lead_share": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "last_lead_date": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "dataset",
+                  "web"
+                ]
+              },
+              "ref": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "quote": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string"
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "ref"
+                ]
+              },
+              {
+                "required": [
+                  "url"
+                ]
+              }
+            ]
+          }
+        },
+        "sources": {
+          "description": "For every non-null field (except id, kind, name): the fact ids it rests on, or inferred: true.",
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "facts"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "facts": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "inferred"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "inferred": {
+                    "const": true
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "investor: countries or regions it invests in (e.g. Nordics, Europe, global)"
+        },
+        "raising": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "startup: the round it is raising now",
+          "properties": {
+            "amount": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "currency": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

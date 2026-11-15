@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ── Light mode (default) ───────────────────────────── */
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 239 68% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 220 20% 10%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 160 68% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 68% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
+    --ring: 239 68% 56%;
+    --radius: 0.5rem;
+    --chart-1: 239 68% 56%;
+    --chart-2: 160 68% 36%;
+    --chart-3: 38 88% 50%;
+    --chart-4: 0 68% 50%;
+    --chart-5: 262 78% 56%;
+  }
+
+  /* ── Dark mode ──────────────────────────────────────── */
+  .dark {
+    --background: 222 22% 7%;
+    --foreground: 220 14% 92%;
+    --card: 222 20% 10%;
+    --card-foreground: 220 14% 92%;
+    --popover: 222 20% 10%;
+    --popover-foreground: 220 14% 92%;
+    --primary: 239 68% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 15%;
+    --secondary-foreground: 220 14% 92%;
+    --muted: 220 14% 13%;
+    --muted-foreground: 220 10% 52%;
+    --accent: 160 68% 44%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 68% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 239 68% 65%;
+    --chart-1: 239 68% 65%;
+    --chart-2: 160 68% 44%;
+    --chart-3: 38 88% 54%;
+    --chart-4: 0 68% 56%;
+    --chart-5: 262 78% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border box-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/30; }
+}
+
+/* ── Keyframes ──────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+@layer components {
+  /* Fade-in animation */
+  .animate-fade-in {
+    animation: fade-in 0.35s ease-out both;
+  }
+
+  /* Evidence badge */
+  .evidence-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border;
+  }
+
+  /* Card hover */
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/30;
+  }
+}
+
+/* ── React Flow ─────────────────────────────────────── */
+.react-flow__background { background-color: hsl(var(--background)); }
+.react-flow__edge-path { stroke: hsl(var(--border)); }
+.react-flow__handle {
+  background: hsl(var(--primary)) !important;
+  border-color: hsl(var(--background)) !important;
+  width: 8px !important;
+  height: 8px !important;
+}
+.react-flow__controls {
+  box-shadow: none !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+}
+.react-flow__controls button {
+  background: hsl(var(--card)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+.react-flow__controls button:last-child { border-bottom: none !important; }
+.react-flow__minimap { background: hsl(var(--card)) !important; border: 1px solid hsl(var(--border)) !important; border-radius: var(--radius) !important; }
+.react-flow__minimap-mask { fill: hsl(var(--background) / 0.7) !important; }
+
+/* ── Recharts ───────────────────────────────────────── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: hsl(var(--border)) !important;
+  opacity: 0.6;
+}
+.recharts-text { fill: hsl(var(--muted-foreground)) !important; }

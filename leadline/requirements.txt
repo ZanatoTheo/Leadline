@@ -1,0 +1,8 @@
+# The Leadline service (serve.py) and its tests; the bundled agent (leadline/agent) needs the same packages.
+fastapi==0.162.7
+uvicorn==0.54.0
+jsonschema==4.23.0
+httpx==0.28.1
+openai==2.54.0
+anthropic==2.8.0
+pytest==8.3.4

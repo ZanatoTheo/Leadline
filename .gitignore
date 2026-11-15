@@ -1,0 +1,94 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Next.js
+.next/
+frontend/.next/
+frontend/out/
+
+# Build outputs
+frontend/build/
+frontend/dist/
+
+# Environment variables
+.env
+.env.local
+.env*.local
+frontend/.env
+frontend/.env.local
+frontend/.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+
+# Claude Code
+.claude/
+
+# TypeScript
+*.tsbuildinfo
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# Vercel
+.vercel
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+/dist/
+eggs/
+/parts/
+/var/
+sdist/
+develop-eggs/
+.installed.cfg
+/lib/
+/lib64/
+venv/
+.venv/
+/env/
+.env/
+
+# Secrets: never commit. Only *.env.example files belong in git.
+*.env
+!*.env.example
+
+# Local Python builds and tool caches
+build/
+dist/
+.pytest_cache/
+
+# Agent caches (web/model replies; leadline_agent/cache.py)
+.venus_cache/
+
+# Generated app data (Cala cache, dataset, runs)
+app/data/
+
+# SQLite side files (the demo DB itself, leadline/data/leadline.db, is committed)
+*.db-shm
+*.db-wal

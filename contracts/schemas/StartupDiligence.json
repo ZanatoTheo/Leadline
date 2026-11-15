@@ -1,0 +1,817 @@
+{
+  "$ref": "#/definitions/StartupDiligence",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Conflict": {
+      "additionalProperties": false,
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/definitions/ConflictLevel"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "level",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "ConflictLevel": {
+      "enum": [
+        "none",
+        "possible",
+        "direct"
+      ],
+      "type": "string"
+    },
+    "Deal": {
+      "additionalProperties": false,
+      "properties": {
+        "amountEurM": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "announced": {
+          "type": "string"
+        },
+        "calaEntityId": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "companyDescription": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "leadInvestors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "otherInvestors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "round": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "company",
+        "companyDescription",
+        "industry",
+        "round",
+        "amountEurM",
+        "announced",
+        "leadInvestors",
+        "otherInvestors",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "DiligencePoint": {
+      "additionalProperties": false,
+      "description": "A point for or against investing, with the evidence behind it.",
+      "properties": {
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "FitReport": {
+      "additionalProperties": false,
+      "properties": {
+        "conflict": {
+          "$ref": "#/definitions/Conflict"
+        },
+        "headline": {
+          "type": "string"
+        },
+        "investor": {
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "detail": {
+                "type": "string"
+              },
+              "good": {
+                "type": "boolean"
+              },
+              "label": {
+                "type": "string"
+              },
+              "sources": {
+                "items": {
+                  "$ref": "#/definitions/Source"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "label",
+              "good",
+              "detail",
+              "sources"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "portfolioTwins": {
+          "items": {
+            "$ref": "#/definitions/PortfolioTwin"
+          },
+          "type": "array"
+        },
+        "score": {
+          "type": "number"
+        },
+        "stage": {
+          "additionalProperties": false,
+          "properties": {
+            "ledAtStage": {
+              "type": "number"
+            },
+            "maxEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "medianEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "minEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "raiseFits": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "ledAtStage",
+            "minEurM",
+            "maxEurM",
+            "medianEurM",
+            "raiseFits"
+          ],
+          "type": "object"
+        },
+        "synergies": {
+          "items": {
+            "$ref": "#/definitions/Synergy"
+          },
+          "type": "array"
+        },
+        "timing": {
+          "$ref": "#/definitions/Timing"
+        }
+      },
+      "required": [
+        "investor",
+        "score",
+        "headline",
+        "portfolioTwins",
+        "stage",
+        "conflict",
+        "synergies",
+        "timing",
+        "points"
+      ],
+      "type": "object"
+    },
+    "FounderProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "competitors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "customers": {
+          "description": "Who the startup sells to, e.g. \"mid-size manufacturers\".",
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "oneLiner": {
+          "type": "string"
+        },
+        "raiseEurM": {
+          "type": "number"
+        },
+        "region": {
+          "$ref": "#/definitions/Region"
+        },
+        "sector": {
+          "$ref": "#/definitions/Sector"
+        },
+        "stage": {
+          "$ref": "#/definitions/Stage"
+        },
+        "startupName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "startupName",
+        "oneLiner",
+        "sector",
+        "stage",
+        "location",
+        "region",
+        "raiseEurM",
+        "competitors",
+        "customers"
+      ],
+      "type": "object"
+    },
+    "FundClose": {
+      "additionalProperties": false,
+      "properties": {
+        "closed": {
+          "type": "string"
+        },
+        "fundName": {
+          "type": "string"
+        },
+        "investor": {
+          "type": "string"
+        },
+        "sizeEurM": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "investor",
+        "fundName",
+        "sizeEurM",
+        "closed",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "Intro": {
+      "additionalProperties": false,
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "founder-to-investor",
+            "investor-to-founder"
+          ],
+          "type": "string"
+        },
+        "founderId": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "investor": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "passReason": {
+          "type": "string"
+        },
+        "respondedAt": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/IntroStatus"
+        }
+      },
+      "required": [
+        "id",
+        "founderId",
+        "investor",
+        "direction",
+        "note",
+        "status",
+        "createdAt"
+      ],
+      "type": "object"
+    },
+    "IntroStatus": {
+      "enum": [
+        "pending",
+        "accepted",
+        "passed"
+      ],
+      "type": "string"
+    },
+    "PortfolioTwin": {
+      "additionalProperties": false,
+      "description": "A portfolio company that looks like the founder, with what happened next.",
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "rounds": {
+          "items": {
+            "$ref": "#/definitions/Deal"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "description",
+        "rounds"
+      ],
+      "type": "object"
+    },
+    "Region": {
+      "enum": [
+        "europe",
+        "nordics",
+        "uk",
+        "dach"
+      ],
+      "type": "string"
+    },
+    "Sector": {
+      "enum": [
+        "climate",
+        "fintech",
+        "ai",
+        "health",
+        "saas"
+      ],
+      "type": "string"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "A document Cala cites for a claim.",
+      "properties": {
+        "publisher": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "title",
+        "url"
+      ],
+      "type": "object"
+    },
+    "Stage": {
+      "enum": [
+        "pre-seed",
+        "seed",
+        "series-a",
+        "series-b"
+      ],
+      "type": "string"
+    },
+    "StartupDiligence": {
+      "additionalProperties": false,
+      "description": "Everything an investor sees on a Leadline founder's page.",
+      "properties": {
+        "competitorRounds": {
+          "items": {
+            "$ref": "#/definitions/Deal"
+          },
+          "type": "array"
+        },
+        "fit": {
+          "$ref": "#/definitions/FitReport"
+        },
+        "founder": {
+          "additionalProperties": false,
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "founderName": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "profile": {
+              "$ref": "#/definitions/FounderProfile"
+            }
+          },
+          "required": [
+            "founderName",
+            "id",
+            "profile"
+          ],
+          "type": "object"
+        },
+        "intro": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Intro"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "market": {
+          "additionalProperties": false,
+          "properties": {
+            "medianEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "rounds": {
+              "type": "number"
+            },
+            "totalEurM": {
+              "type": "number"
+            },
+            "twinsFundedLast24m": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "rounds",
+            "totalEurM",
+            "medianEurM",
+            "twinsFundedLast24m"
+          ],
+          "type": "object"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "simulated"
+          ],
+          "type": "string"
+        },
+        "otherLeads": {
+          "description": "Other investors most likely to compete with you to lead this round.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "lastLed": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ledCount": {
+                "type": "number"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "ledCount",
+              "lastLed"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "risks": {
+          "items": {
+            "$ref": "#/definitions/DiligencePoint"
+          },
+          "type": "array"
+        },
+        "strengths": {
+          "items": {
+            "$ref": "#/definitions/DiligencePoint"
+          },
+          "type": "array"
+        },
+        "twins": {
+          "$ref": "#/definitions/TwinsResponse"
+        }
+      },
+      "required": [
+        "mode",
+        "founder",
+        "intro",
+        "fit",
+        "twins",
+        "market",
+        "otherLeads",
+        "competitorRounds",
+        "strengths",
+        "risks"
+      ],
+      "type": "object"
+    },
+    "Synergy": {
+      "additionalProperties": false,
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "matched": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/definitions/Source"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "description",
+        "industry",
+        "matched",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "Timing": {
+      "additionalProperties": false,
+      "properties": {
+        "avgLeadsPer90": {
+          "type": "number"
+        },
+        "daysSinceLastLead": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "headline": {
+          "type": "string"
+        },
+        "latestFund": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FundClose"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leadsLast90": {
+          "type": "number"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/definitions/TimingStatus"
+        }
+      },
+      "required": [
+        "status",
+        "headline",
+        "latestFund",
+        "leadsLast90",
+        "avgLeadsPer90",
+        "daysSinceLastLead",
+        "reasons"
+      ],
+      "type": "object"
+    },
+    "TimingStatus": {
+      "description": "\"unknown\": no leads in the data and no fresh fund, so the pace can't be judged.",
+      "enum": [
+        "deploying",
+        "steady",
+        "slowing",
+        "unknown"
+      ],
+      "type": "string"
+    },
+    "Twin": {
+      "additionalProperties": false,
+      "description": "A startup that was where the founder is now, and the rounds it raised.",
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "rounds": {
+          "items": {
+            "$ref": "#/definitions/Deal"
+          },
+          "type": "array"
+        },
+        "sharedTerms": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "description",
+        "sharedTerms",
+        "rounds"
+      ],
+      "type": "object"
+    },
+    "TwinsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "live",
+            "simulated"
+          ],
+          "type": "string"
+        },
+        "monthsToNext": {
+          "description": "Months from the founder's stage to the next round, for twins that made it.",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "pathLeads": {
+          "description": "Investors who led a round for any twin, most twins first.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "rounds": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "round": {
+                      "type": "string"
+                    },
+                    "twin": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "twin",
+                    "round"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "slug",
+              "rounds"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "reachedNext": {
+          "type": "number"
+        },
+        "sameStage": {
+          "additionalProperties": false,
+          "description": "Twins' rounds at the founder's stage.",
+          "properties": {
+            "count": {
+              "type": "number"
+            },
+            "maxEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "medianEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "minEurM": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "count",
+            "minEurM",
+            "maxEurM",
+            "medianEurM"
+          ],
+          "type": "object"
+        },
+        "twins": {
+          "items": {
+            "$ref": "#/definitions/Twin"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "twins",
+        "pathLeads",
+        "sameStage",
+        "monthsToNext",
+        "reachedNext"
+      ],
+      "type": "object"
+    }
+  }
+}

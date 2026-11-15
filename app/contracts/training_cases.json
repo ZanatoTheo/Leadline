@@ -1,0 +1,38 @@
+{
+  "comment": "Training cases for the cala-leads Venus plugin (mode: training). Wrap as {venus_version: '1', plugin: 'cala-leads', mode: 'training', cases: [...]}. 'expected' mirrors the fixture outputs; a checker can score matches, rejected reasons and evidence coverage against these.",
+  "cases": [
+    {
+      "id": "s2i_lumiforge",
+      "input": {
+        "dataset": "<data/dataset.json>",
+        "request": {"direction": "startup_to_investors", "subject_id": "c_lumiforge", "top_k": 10, "as_of": "2026-11-13", "filters": {}, "live_check": true}
+      },
+      "expected": {
+        "must_match": ["i_nordic_seed", "i_baltic_ventures", "i_fjord_impact"],
+        "must_reject": {
+          "i_aurora_angels": "size_mismatch",
+          "i_meadowlane": "sector_mismatch",
+          "i_helix_capital": "stage_mismatch",
+          "i_deepblue_growth": "stage_mismatch"
+        },
+        "top_match": "i_nordic_seed"
+      }
+    },
+    {
+      "id": "i2s_baltic_ventures",
+      "input": {
+        "dataset": "<data/dataset.json>",
+        "request": {"direction": "investor_to_startups", "subject_id": "i_baltic_ventures", "top_k": 10, "as_of": "2026-11-13", "filters": {}, "live_check": true}
+      },
+      "expected": {
+        "must_match": ["c_quantlane", "c_kittencode", "c_lumiforge"],
+        "must_reject": {
+          "c_nordwave": "sector_mismatch",
+          "c_helixden": "sector_mismatch",
+          "c_polargrid": "size_mismatch"
+        },
+        "top_match": "c_quantlane"
+      }
+    }
+  ]
+}

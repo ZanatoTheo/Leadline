@@ -1,0 +1,42 @@
+{
+  "$ref": "#/definitions/ShortlistPending",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ShortlistPending": {
+      "additionalProperties": false,
+      "description": "`/api/shortlist` answers this with HTTP 202 while the agent is still working on the founder's data.",
+      "properties": {
+        "message": {
+          "description": "What is happening now, in plain words.",
+          "type": "string"
+        },
+        "next": {
+          "description": "What comes after this step, or null when it is the last one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "const": "building",
+          "type": "string"
+        },
+        "step": {
+          "description": "The step running now: the founder's profile first, then the investor ranking.",
+          "enum": [
+            "profile",
+            "ranking"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "step",
+        "message",
+        "next"
+      ],
+      "type": "object"
+    }
+  }
+}

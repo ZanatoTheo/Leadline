@@ -1,0 +1,64 @@
+{
+  "name": "leadline-match",
+  "version": "0.1.0",
+  "brief": "Rank the given candidate profiles (investors for a startup, or startups for an investor) for one subject profile, best fit first, top_k at most. A good match is a candidate likely to lead the subject's next round. Rank only the given candidates, by id. Each match has a score in [0, 1], score_parts, role (lead, participant or unknown), an activity status, a confidence and reasons that cite evidence ids. Put clear misfits in rejected with one of the listed reasons. Use only facts dated on or before request.as_of. Profile facts are dataset evidence; pages you read are web evidence with their url.",
+  "input_schema": "input.schema.json",
+  "output_schema": "output.schema.json",
+  "checker": "checker:check",
+  "web": true,
+  "cala": true,
+  "seed_tendencies": [
+    {
+      "id": "t-leads-first",
+      "text": "Rank candidates who have led rounds (role lead, high lead_share) above those who only joined rounds; a candidate seen only as a participant goes in rejected with reason follower_only when lead history is known."
+    },
+    {
+      "id": "t-observed-fit",
+      "text": "Reject only on an observed fact: stage, sector, country or check size that clearly does not fit the subject. A missing or unknown field never rejects; rank it lower and say confidence low."
+    },
+    {
+      "id": "t-recent-activity",
+      "text": "Prefer candidates with a lead in the 24 months before request.as_of; mark older activity as inactive. Ignore anything dated after request.as_of."
+    },
+    {
+      "id": "t-cite-evidence",
+      "text": "Every reason cites at least one evidence id from the evidence list; add each profile fact or web page you rely on to evidence once, with its ref or url."
+    },
+    {
+      "id": "t-only-given",
+      "text": "Use only candidate ids from the input, each at most once across matches and rejected; never add the subject or new names."
+    }
+  ],
+  "settings_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "description": "Prefilter knobs (prefilter.py), applied before the agent ranks; the free gate checks them on cases.",
+    "properties": {
+      "rules": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {
+          "enum": [
+            "stage_mismatch",
+            "out_of_region",
+            "size_mismatch",
+            "sector_mismatch"
+          ]
+        },
+        "description": "drop rules that are on (default: all four)"
+      },
+      "min_check_share": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 0.5,
+        "description": "size rule: drop when the largest check is under this share of the round (default 0.05)"
+      },
+      "max_candidates": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200,
+        "description": "candidates passed to the agent after filtering (default 200)"
+      }
+    }
+  }
+}
