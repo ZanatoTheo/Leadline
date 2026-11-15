@@ -1,12 +1,14 @@
-"""Run the Leadline service and its background worker on 127.0.0.1.
+"""Run the Leadline service and its background worker.
 
-    python leadline/serve.py --db leadline/data/leadline.db --port 8765 [--no-worker] [--fake-model]
-                             [--env-file venus/.env]
+    python leadline/serve.py --db leadline/data/leadline.db --port 8765 [--host 127.0.0.1] [--no-worker]
+                             [--fake-model] [--env-file venus/.env]
 
-The service trusts its caller (the frontend's server code), so it only ever binds to 127.0.0.1. API keys come from
-the process environment (and `--env-file`, which never overrides a set variable); no key is ever printed.
-`--fake-model` answers every profile and match run offline with a valid made-up answer and turns web tools and Cala
-off: for smoke runs that must not spend anything.
+The service trusts its caller (the frontend's server code), so locally it binds 127.0.0.1. When it is exposed
+(`--host 0.0.0.0`, e.g. behind a generated domain), set LEADLINE_SERVICE_TOKEN: every route but /healthz then
+needs `authorization: Bearer <token>`, and serve.py warns when binding beyond loopback without it. The port
+defaults to $PORT when set. API keys come from the process environment (and `--env-file`, which never overrides
+a set variable); no key is ever printed. `--fake-model` answers every profile and match run offline with a valid
+made-up answer and turns web tools and Cala off: for smoke runs that must not spend anything.
 """
 from __future__ import annotations
 
@@ -116,8 +118,9 @@ def build(db_path, *, worker=True, fake_model=False, environ=None, agent_root=No
     """(app, worker or None) for these options; used by main() and the tests."""
     environ = dict(os.environ if environ is None else environ)
     db = LeadlineDb(db_path)
+    app = create_app(db, token=environ.get("LEADLINE_SERVICE_TOKEN", ""))
     if not worker:
-        return create_app(db), None
+        return app, None
     model = None
     if fake_model:
         for name in OFFLINE_DROP:
@@ -127,13 +130,15 @@ def build(db_path, *, worker=True, fake_model=False, environ=None, agent_root=No
     if fake_model:
         profile_agent.web_tools = []  # no Context.dev even if a key is set some other way
     w = Worker(db, handlers(profile_agent, match_agent))
-    return create_app(db, w), w
+    return create_app(db, w, token=environ.get("LEADLINE_SERVICE_TOKEN", "")), w
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--db", default=str(HERE / "data" / "leadline.db"))
-    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--host", default=HOST, help="bind address (default 127.0.0.1; 0.0.0.0 needs "
+                                                     "LEADLINE_SERVICE_TOKEN set)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8765)))
     parser.add_argument("--no-worker", action="store_true", help="serve reads only; queued jobs wait")
     parser.add_argument("--fake-model", action="store_true", help="offline answers; no model, web or Cala calls")
     parser.add_argument("--env-file", help="KEY=VALUE file with API keys (never overrides the environment)")
@@ -143,9 +148,11 @@ def main(argv=None) -> int:
         names = load_env_file(args.env_file, os.environ)
         logging.info("loaded %d variables from %s", len(names), args.env_file)
     app, _ = build(args.db, worker=not args.no_worker, fake_model=args.fake_model)
+    if args.host != HOST and not os.environ.get("LEADLINE_SERVICE_TOKEN"):
+        logging.warning("binding %s with no LEADLINE_SERVICE_TOKEN: every endpoint is open", args.host)
 
     import uvicorn
-    uvicorn.run(app, host=HOST, port=args.port, log_level="info")
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
     return 0
 
 

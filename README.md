@@ -56,6 +56,8 @@ cp .env.example .env.local   # add CALA_API_KEY for live data
 npm run dev
 ```
 
+Deploy (Railway service + Vercel frontend): see [DEPLOY.md](DEPLOY.md).
+
 ## Data: live vs simulated
 
 All investor data comes through `src/lib/cala/client.ts`, which talks to Cala's `/v1/knowledge/query` (structured rows) and `/v1/knowledge/search` (sources behind each claim).

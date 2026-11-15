@@ -1,0 +1,10 @@
+# Root requirements: Railpack (Railway) detects the Python service from this file.
+# Same pins as leadline/requirements.txt (which adds pytest for the tests).
+fastapi==0.162.7
+uvicorn==0.54.0
+jsonschema==4.23.0
+httpx==0.28.1
+openai==2.54.0
+anthropic==2.8.0
+# The Venus engine (leadline/profiles.py imports it at startup)
+./venus

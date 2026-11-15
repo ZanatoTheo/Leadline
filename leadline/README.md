@@ -13,9 +13,13 @@ venus/.venv/bin/python leadline/serve.py --db leadline/data/leadline.db --port 8
 - `--no-worker`: serve reads only; queued jobs wait.
 - `--fake-model`: offline answers for every profile and match run; web tools and Cala are off. For smoke runs.
 - `--env-file`: KEY=VALUE file; it never overrides a variable that is already set. No key is ever printed.
+- `--host` / `--port`: bind address (default 127.0.0.1) and port (default `$PORT`, else 8765).
 
-It binds to **127.0.0.1 only**. It trusts its caller: for example `PATCH /intros/{id}` takes `userId` from the
-body, because the TS server has already checked the session cookie. Never expose the port.
+It binds to **127.0.0.1** by default. It trusts its caller: for example `PATCH /intros/{id}` takes `userId` from
+the body, because the TS server has already checked the session cookie. Only bind beyond loopback
+(`--host 0.0.0.0`, e.g. on Railway) with `LEADLINE_SERVICE_TOKEN` set: every route but `/healthz` then needs
+`authorization: Bearer <token>`, and serve.py warns when you expose it without one. The frontend sends the token
+automatically when its own `LEADLINE_SERVICE_TOKEN` is set (`frontend/src/lib/server/leadline-service.ts`).
 
 Install: `pip install -r leadline/requirements.txt` (all already in `venus/.venv`).
 
@@ -29,6 +33,8 @@ Install: `pip install -r leadline/requirements.txt` (all already in `venus/.venv
 | `LEADLINE_LIVE_CALA=1`, `CALA_API_KEY` | Cala in profile builds (off unless set; at most `VENUS_CALA_MAX_CALLS`, default 3, per build) |
 | `LEADLINE_TOP_N` | candidates sent to the match agent per ranking (default 10) |
 | `LEADLINE_AGENT_DIR` | where the injected agent is (default `leadline/agent`) |
+| `LEADLINE_SERVICE_TOKEN` | bearer token every route but `/healthz` requires; unset means no auth (local dev) |
+| `PORT` | default for `--port` (Railway sets it) |
 
 ## The page-load rule
 
@@ -69,6 +75,7 @@ Bodies use the frontend's types (`contracts/schemas/*.json`). Errors are `{"erro
 | `GET /fund-closes` | `?sector=&sinceDays=` | `FundClose[]` |
 | `GET /entities` | `?name=&limit=` | `CalaEntity[]` |
 | `GET /status` | | `{mode: "live" \| "simulated", jobs: {queued, running, failed}}` |
+| `GET /healthz` | | `{"ok": true}` (deploy health check; the only route that skips token auth) |
 | `GET /profiles/{key}` | | `{status, profile?, rating?, version?, updatedAt?, error?}` |
 | `GET /rankings/{key}` | | `{status, ranking: {matches, newCandidates, computedAt} \| null, error?}` |
 

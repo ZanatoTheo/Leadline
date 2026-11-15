@@ -7,12 +7,15 @@ Page loads only read the database here: no endpoint calls Cala, the web or a mod
 frontend's own types (built by shapes.*_out, checked against contracts/schemas/ in tests); errors are
 {"error": "..."} with 400/401/403/404/409/503.
 
-The service trusts its caller (the TS server has already checked the session cookie): it must stay bound to
-127.0.0.1.
+The service trusts its caller (the TS server has already checked the session cookie). Locally it binds 127.0.0.1
+only; when it is exposed (serve.py --host 0.0.0.0), set LEADLINE_SERVICE_TOKEN so every route but /healthz needs
+`authorization: Bearer <token>`.
 """
 from __future__ import annotations
 
+import hmac
 import json
+import os
 import re
 from contextlib import asynccontextmanager
 from datetime import date, timedelta
@@ -123,7 +126,8 @@ def _schema(name: str):
     return jsonschema.Draft7Validator(json.loads((SCHEMAS / f"{name}.json").read_text()))
 
 
-def create_app(db, worker=None) -> FastAPI:
+def create_app(db, worker=None, *, token=None) -> FastAPI:
+    """token: the bearer token every route but /healthz needs (default: LEADLINE_SERVICE_TOKEN; "" forces auth off)."""
     founder_profile = _schema("FounderProfile")
 
     @asynccontextmanager
@@ -138,6 +142,22 @@ def create_app(db, worker=None) -> FastAPI:
 
     app = FastAPI(title="Leadline service", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.db, app.state.worker = db, worker
+
+    service_token = os.environ.get("LEADLINE_SERVICE_TOKEN") if token is None else token
+    if service_token:
+
+        @app.middleware("http")
+        async def _auth(request, call_next):
+            expected = f"Bearer {service_token}"
+            got = request.headers.get("authorization", "")
+            if request.url.path != "/healthz" and not hmac.compare_digest(got.encode(), expected.encode()):
+                return JSONResponse({"error": "missing or wrong service token"}, status_code=401)
+            return await call_next(request)
+
+    @app.get("/healthz")
+    def healthz():
+        """Deploy health check; always open, touches nothing."""
+        return {"ok": True}
 
     @app.exception_handler(ApiError)
     async def _api_error(request, exc: ApiError):

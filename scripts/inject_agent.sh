@@ -18,6 +18,9 @@ rm -rf "$TARGET"
 cp -r "$DIST" "$TARGET"
 find "$TARGET" -name __pycache__ -type d -prune -exec rm -rf {} +
 
+# Leadline-only patch, reapplied on every export: model_bad_reply and output_invalid also fall back once.
+"$PY" "$ROOT/scripts/patch_agent_fallback.py" "$TARGET"
+
 "$PY" -I -c '
 import json, sys
 sys.path.insert(0, sys.argv[1])

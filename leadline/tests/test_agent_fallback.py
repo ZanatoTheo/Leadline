@@ -1,6 +1,6 @@
 """The injected agent copy (leadline/agent/leadline_agent) falls back to the fallback model when the primary model's
 reply is cut off (model_bad_reply) or unusable (output_invalid). Leadline-only: Venus itself keeps no fallback on
-output_invalid, so this copy differs until the next scripts/inject_agent.sh run."""
+output_invalid; scripts/inject_agent.sh re-applies the patch via scripts/patch_agent_fallback.py on every export."""
 import importlib
 import json
 import shutil

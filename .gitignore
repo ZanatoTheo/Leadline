@@ -102,9 +102,9 @@ venus/runs/
 # Generated app data (Cala cache, dataset, runs)
 app/data/
 
-# Agent injected by scripts/inject_agent.sh (generated from venus export)
-leadline/agent/
-
-
 # Training run records
 leadline/runs/
+
+# Local demo data and session log (not deploy source)
+.e2e-tmp/
+PLAN_LOG.md

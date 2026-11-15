@@ -270,6 +270,25 @@ def test_status_is_simulated_without_cala_rows(client):
     assert client.get("/status").json()["mode"] == "simulated"
 
 
+# --- token auth and health (deploy mode) ---------------------------------------------------------------------------
+
+def test_healthz_is_always_open(db):
+    app = service.create_app(db, token="s3cret")
+    assert TestClient(app).get("/healthz").json() == {"ok": True}
+
+
+def test_token_guards_everything_but_healthz(db):
+    client = TestClient(service.create_app(db, token="s3cret"))
+    for headers in ({}, {"authorization": "Bearer wrong"}, {"authorization": "s3cret"}):
+        assert client.get("/status", headers=headers).status_code == 401, headers
+        assert client.get("/healthz", headers=headers).status_code == 200, headers
+    assert client.get("/status", headers={"authorization": "Bearer s3cret"}).status_code == 200
+
+
+def test_no_token_means_no_auth(client):
+    assert client.get("/status").status_code == 200
+
+
 # --- agent results ------------------------------------------------------------------------------------------------
 
 def test_profile_status_none_building_ready_failed(client, db):
@@ -403,6 +422,13 @@ def test_env_file_never_overrides_and_reports_names_only(tmp_path):
 def test_no_worker_build_serves_reads(tmp_path):
     app, worker = serve.build(tmp_path / "x.db", worker=False)
     assert worker is None and TestClient(app).get("/status").json()["mode"] == "simulated"
+
+
+def test_build_passes_the_service_token_from_environ(tmp_path):
+    app, _ = serve.build(tmp_path / "x.db", worker=False, environ={"LEADLINE_SERVICE_TOKEN": "s3cret"})
+    client = TestClient(app)
+    assert client.get("/status").status_code == 401
+    assert client.get("/status", headers={"authorization": "Bearer s3cret"}).status_code == 200
 
 
 @pytest.mark.skipif(not (INJECTED / "leadline_agent" / "__init__.py").is_file(),

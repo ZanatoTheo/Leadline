@@ -1,7 +1,10 @@
-// Server-only client for the local Leadline service (leadline/serve.py, bound to
-// 127.0.0.1). The service owns the database: accounts, sessions, founder
-// records, intros, market data, and the agent's stored profiles and rankings.
-// Every helper returns the frontend's own types; the service builds them.
+// Server-only client for the Leadline service (leadline/serve.py). Locally it
+// is bound to 127.0.0.1; deployed, it sits behind a generated domain and every
+// route needs LEADLINE_SERVICE_TOKEN as a bearer token (sent automatically
+// when the variable is set here). The service owns the database: accounts,
+// sessions, founder records, intros, market data, and the agent's stored
+// profiles and rankings. Every helper returns the frontend's own types; the
+// service builds them.
 
 import type { Deal, FounderProfile, FundClose } from "@/lib/leadline/types";
 import type { FounderRecord, Intro } from "@/lib/leadline/match-types";
@@ -24,11 +27,15 @@ const baseUrl = () => (process.env.LEADLINE_SERVICE_URL ?? "http://127.0.0.1:876
 
 /** One JSON call to the service. Never cached: every page load reads the database as it is now. */
 export async function svc<T>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+  const token = process.env.LEADLINE_SERVICE_TOKEN;
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["content-type"] = "application/json";
+  if (token) headers.authorization = `Bearer ${token}`;
   let res: Response;
   try {
     res = await fetch(baseUrl() + path, {
       method,
-      headers: body === undefined ? undefined : { "content-type": "application/json" },
+      headers: Object.keys(headers).length ? headers : undefined,
       body: body === undefined ? undefined : JSON.stringify(body),
       cache: "no-store",
       signal: AbortSignal.timeout(TIMEOUT_MS),
