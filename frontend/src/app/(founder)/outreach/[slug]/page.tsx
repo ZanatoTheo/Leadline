@@ -16,6 +16,7 @@ import {
   postJson,
   useRequiredProfile,
 } from "@/components/leadline/shared";
+import { useSession } from "@/components/leadline/session";
 import { draftOutreach } from "@/lib/leadline/outreach";
 import type { InvestorBrief } from "@/lib/leadline/types";
 
@@ -25,6 +26,7 @@ function OutreachEditor() {
   const { slug } = useParams<{ slug: string }>();
   const focusDeal = useSearchParams().get("deal") ?? undefined;
   const profile = useRequiredProfile();
+  const founderName = useSession().name;
   const [data, setData] = useState<BriefResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subject, setSubject] = useState("");
@@ -32,8 +34,8 @@ function OutreachEditor() {
   const [copied, setCopied] = useState(false);
 
   const draft = useMemo(
-    () => (data && profile ? draftOutreach(profile, data, focusDeal) : null),
-    [data, profile, focusDeal],
+    () => (data && profile ? draftOutreach(profile, data, focusDeal, founderName) : null),
+    [data, profile, focusDeal, founderName],
   );
 
   useEffect(() => {

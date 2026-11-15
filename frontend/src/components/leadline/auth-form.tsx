@@ -172,7 +172,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 <Rocket className="h-3.5 w-3.5" /> Founder: Carbonlens
               </Button>
               <Button variant="outline" size="sm" disabled={busy} onClick={() => demo("investor")}>
-                <Briefcase className="h-3.5 w-3.5" /> Investor: Sam at Fjord
+                <Briefcase className="h-3.5 w-3.5" /> Investor: Sam at Bidra
               </Button>
             </div>
           </div>

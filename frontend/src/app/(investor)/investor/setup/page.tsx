@@ -7,6 +7,7 @@ import { ArrowRight, Loader2, Search, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBox, PoweredByCala, postJson, useCalaMode } from "@/components/leadline/shared";
+import { ExitLinks } from "@/components/leadline/exit-links";
 import { ThesisView } from "@/components/leadline/thesis";
 import { useSession } from "@/components/leadline/session";
 import type { InvestorThesis } from "@/lib/leadline/match-types";
@@ -21,8 +22,11 @@ export default function InvestorSetupPage() {
   const [picked, setPicked] = useState<string | null>(null);
   const [thesis, setThesis] = useState<InvestorThesis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The last search found no fund: say so instead of showing nothing.
+  const [noMatch, setNoMatch] = useState(false);
 
   useEffect(() => {
+    setNoMatch(false);
     if (picked || query.trim().length < 2) {
       setOptions([]);
       return;
@@ -31,7 +35,10 @@ export default function InvestorSetupPage() {
     const t = setTimeout(() => {
       fetch(`/api/funds?q=${encodeURIComponent(query)}`, { signal: ctrl.signal })
         .then((r) => r.json())
-        .then((d) => setOptions(d.funds ?? []))
+        .then((d) => {
+          setOptions(d.funds ?? []);
+          setNoMatch(!d.funds?.length);
+        })
         .catch(() => {});
     }, 200);
     return () => {
@@ -75,7 +82,10 @@ export default function InvestorSetupPage() {
             <span className="text-sm font-semibold">Leadline</span>
             <span className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">for investors</span>
           </Link>
-          <PoweredByCala mode={mode} />
+          <div className="flex items-center gap-3">
+            <PoweredByCala mode={mode} />
+            <ExitLinks cancelHref={session.investorName ? "/investor/today" : undefined} />
+          </div>
         </div>
       </nav>
 
@@ -97,7 +107,7 @@ export default function InvestorSetupPage() {
               setPicked(null);
               setThesis(null);
             }}
-            placeholder="Start typing your fund's name, e.g. Fjord"
+            placeholder="Start typing your fund's name, e.g. Bidra"
             className="pl-9"
             autoFocus
           />
@@ -113,6 +123,11 @@ export default function InvestorSetupPage() {
                 </button>
               ))}
             </div>
+          )}
+          {noMatch && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              No fund matching &ldquo;{query.trim()}&rdquo; in the data yet. Try a shorter part of the name.
+            </p>
           )}
         </div>
 

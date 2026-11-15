@@ -23,7 +23,12 @@ function list(names: string[]): string {
   return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
 
-export function draftOutreach(profile: FounderProfile, brief: InvestorBrief, focusDealId?: string): OutreachDraft {
+export function draftOutreach(
+  profile: FounderProfile,
+  brief: InvestorBrief,
+  focusDealId?: string,
+  founderName?: string,
+): OutreachDraft {
   const inv = brief.investor;
   const name = profile.startupName || "our startup";
   const stage = stageLabel(profile.stage).toLowerCase();
@@ -74,7 +79,7 @@ export function draftOutreach(profile: FounderProfile, brief: InvestorBrief, foc
     `We're raising a ${fmtEur(profile.raiseEurM)} ${stage} round and would love you to lead it. Would you be open to a 20-minute call in the next couple of weeks? Happy to send our deck first.`,
     "",
     "Best,",
-    `[Your name], founder of ${name}`,
+    `${founderName?.trim() || "[Your name]"}, founder of ${name}`,
   ].join("\n");
 
   return {

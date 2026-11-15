@@ -18,6 +18,7 @@ import {
   useRequiredProfileOptional,
 } from "@/components/leadline/shared";
 import { useSession } from "@/components/leadline/session";
+import { ExitLinks } from "@/components/leadline/exit-links";
 
 const EMPTY: FounderProfile = {
   startupName: "",
@@ -105,7 +106,10 @@ export default function OnboardingPage() {
             </div>
             <span className="text-sm font-semibold">Leadline</span>
           </Link>
-          <PoweredByCala mode={mode} />
+          <div className="flex items-center gap-3">
+            <PoweredByCala mode={mode} />
+            <ExitLinks cancelHref={saved ? "/today" : undefined} />
+          </div>
         </div>
       </nav>
 

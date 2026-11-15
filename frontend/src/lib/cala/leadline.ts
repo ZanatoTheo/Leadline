@@ -112,7 +112,11 @@ const RETRY = "Save your profile again on My startup to retry.";
 
 // The agent cites its evidence by fact id, e.g. "(subj:f3)" or "(bidra:f3, bidra:f2)". Founders can't open those
 // ids, so they are dropped from the text shown; the sources stay on the investor brief.
-const FACT_IDS = /\s*\((?:[a-z][\w.-]*:[\w.-]+)(?:,\s*[a-z][\w.-]*:[\w.-]+)*\)/gi;
+// Fact ids the agent cites ("subj:f5", "cand:f2"), one or more, split by "," or ";".
+const ID_LIST = String.raw`[a-z][\w.-]*:[\w.-]+(?:\s*[,;]\s*[a-z][\w.-]*:[\w.-]+)*`;
+const FACT_IDS = new RegExp(String.raw`\s*\(\s*${ID_LIST}\s*\)`, "gi"); // "(subj:f5, cand:f2)" -> ""
+const FACT_IDS_FIRST = new RegExp(String.raw`\(\s*${ID_LIST}\s*[,;]\s*`, "gi"); // "(subj:f5, roughly" -> "(roughly"
+const FACT_IDS_LAST = new RegExp(String.raw`\s*[,;]\s*${ID_LIST}\s*\)`, "gi"); // "roughly; subj:f5)" -> "roughly)"
 /** The other side's agent score for the same pair, in words: "Bidra's agent scores this pair 50 from its side." */
 export function otherSideNote(otherName: string, otherScore: number | null): string {
   return otherScore != null
@@ -124,6 +128,8 @@ export function otherSideNote(otherName: string, otherScore: number | null): str
 export const withoutFactIds = (text: string) =>
   text
     .replace(FACT_IDS, "")
+    .replace(FACT_IDS_FIRST, "(")
+    .replace(FACT_IDS_LAST, ")")
     .replace(/\s+([.,;])/g, "$1")
     .replace(/\bthe as_of date\b/g, "today")
     .replace(/\bas_of\b/g, "today");
