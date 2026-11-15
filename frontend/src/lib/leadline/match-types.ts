@@ -102,6 +102,8 @@ export interface NextTwin {
 
 export interface DiscoverResponse {
   mode: "live" | "simulated";
+  /** Set while this fund has no stored ranking yet: the agent is still building it, or the build failed. */
+  ranking?: "building" | "failed";
   founders: { founder: PublicFounder; fit: FitReport; intro?: Intro }[];
   nextTwins: NextTwin[];
 }

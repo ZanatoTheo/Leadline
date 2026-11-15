@@ -436,6 +436,11 @@ def create_app(db, worker=None, *, token=None) -> FastAPI:
         return {"mode": "live" if "cala" in db.data_providers() else "simulated",
                 "jobs": {k: jobs[k] for k in ("queued", "running", "failed")}}
 
+    @app.get("/jobs/failed")
+    def failed_jobs(limit: int = 20):
+        """Why runs failed: the newest failed jobs with their error (behind the service token like the rest)."""
+        return {"jobs": db.failed_jobs(limit)}
+
     # -- agent results (stored; never computed here) -------------------------------------------------------------
 
     @app.get("/profiles/{key}")

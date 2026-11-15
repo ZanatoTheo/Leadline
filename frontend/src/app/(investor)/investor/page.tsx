@@ -114,6 +114,14 @@ export default function InvestorDealFlowPage() {
     load();
   }, [load]);
 
+  // While the agent builds this fund's first ranking, check again every 20 seconds.
+  const building = discover?.ranking === "building";
+  useEffect(() => {
+    if (!building) return;
+    const t = setInterval(load, 20_000);
+    return () => clearInterval(t);
+  }, [building, load]);
+
   const emailFor = (introId?: string) => intros.find((i) => i.id === introId)?.founder?.email;
   const founders = discover?.founders ?? [];
   const requests = founders.filter((f) => f.intro?.direction === "founder-to-investor" && f.intro.status !== "accepted");
@@ -198,9 +206,19 @@ export default function InvestorDealFlowPage() {
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <Sparkles className="h-4 w-4 text-primary" /> Founders on Leadline who fit you ({discoverable.length})
             </h2>
-            {discoverable.length === 0 && (
-              <p className="text-sm text-muted-foreground">No opted-in founders match your thesis right now.</p>
-            )}
+            {discoverable.length === 0 &&
+              (building ? (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Your agent is reading {investor}&apos;s rounds and
+                  ranking founders. This takes a few minutes; this list updates by itself.
+                </p>
+              ) : discover?.ranking === "failed" ? (
+                <p className="text-sm text-muted-foreground">
+                  Your agent couldn&apos;t rank founders for {investor} this time. Pick the fund again to retry.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">No opted-in founders match your thesis right now.</p>
+              ))}
             {discoverable.map((f) => (
               <FounderCard key={f.founder.id} founder={f.founder} fit={f.fit} intro={f.intro} onChange={load} />
             ))}

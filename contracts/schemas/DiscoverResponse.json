@@ -135,6 +135,14 @@
             "$ref": "#/definitions/NextTwin"
           },
           "type": "array"
+        },
+        "ranking": {
+          "description": "Set while this fund has no stored ranking yet: the agent is still building it, or the build failed.",
+          "enum": [
+            "building",
+            "failed"
+          ],
+          "type": "string"
         }
       },
       "required": [

@@ -316,9 +316,10 @@ export async function buildThesis(investor: string): Promise<InvestorThesis> {
 // ── Discovery: Leadline founders + startups like their breakouts ──────────
 
 export async function discover(investor: string): Promise<DiscoverResponse> {
-  const [thesis, state, mine, rounds, mode] = await Promise.all([
+  const [thesis, state, built, mine, rounds, mode] = await Promise.all([
     buildThesis(investor),
     service.rankings(investorKey(investor)),
+    service.profileStatus(investorKey(investor)).catch(() => null),
     listIntros({ investor }),
     getInvestorRounds(investor).catch(() => [] as Deal[]),
     refreshCalaMode(),
@@ -380,5 +381,14 @@ export async function discover(investor: string): Promise<DiscoverResponse> {
     // The agent's ranked founders first (its scores), then founders known only through an intro (heuristic scores).
     .sort((a, b) => Number(scores.has(b.founder.id)) - Number(scores.has(a.founder.id)) || b.fit.score - a.fit.score);
 
-  return { mode, founders, nextTwins: nextTwins.slice(0, 8) };
+  // No ranking stored yet (a fund just picked): say the agent is working, or that it failed, rather than
+  // "nobody fits". Only while a profile or rank job really runs; otherwise the normal empty text stays.
+  const ranking = state.ranking
+    ? undefined
+    : state.status === "failed" || built?.status === "failed"
+      ? ("failed" as const)
+      : state.status === "building" || built?.status === "building"
+        ? ("building" as const)
+        : undefined;
+  return { mode, ranking, founders, nextTwins: nextTwins.slice(0, 8) };
 }

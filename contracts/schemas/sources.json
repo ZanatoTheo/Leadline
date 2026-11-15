@@ -1,6 +1,6 @@
 {
   "frontend/src/lib/leadline/types.ts": "92c3ca2a5a7adf7abddc301cc5fa98d663d1cf1baa546009529f16b4790f05d9",
-  "frontend/src/lib/leadline/match-types.ts": "393247fa88b934a312286cdab04a5a7eced9cee2d4cf4e81418b3cd0060e3522",
+  "frontend/src/lib/leadline/match-types.ts": "7c57c371b15d5b82834d1ca83688f30326cbe5c1109f140cd50aff1496520509",
   "frontend/src/lib/server/db.ts": "b51e2c263b85ea7bb507a7d7f2c441e4e9796dd4686715e576e85a567af2e0e2",
   "frontend/src/lib/server/auth.ts": "91daf38432079825f88cc6070e608716ae09e0fb45d41769eb4e39b002221b6b",
   "frontend/src/lib/cala/client.ts": "6357eb7ac12d26d1f98901a291ed7380b2b1d3a46f7d2ae8368a576935d38f62"

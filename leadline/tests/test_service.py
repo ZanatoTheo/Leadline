@@ -270,6 +270,28 @@ def test_status_is_simulated_without_cala_rows(client):
     assert client.get("/status").json()["mode"] == "simulated"
 
 
+def test_failed_jobs_lists_the_newest_failures_with_their_error(db, client):
+    old = db.enqueue_job("profile", "investor:a")
+    db.claim_job()
+    db.finish_job(old["id"], error="model_bad_reply: cut off")
+    new = db.enqueue_job("rank", "founder:b")
+    db.claim_job()
+    db.finish_job(new["id"], error="output_invalid: no JSON")
+    ok = db.enqueue_job("rank", "founder:c")
+    db.claim_job()
+    db.finish_job(ok["id"])
+    body = client.get("/jobs/failed").json()
+    assert [(j["kind"], j["subject_key"], j["error"]) for j in body["jobs"]] == [
+        ("rank", "founder:b", "output_invalid: no JSON"), ("profile", "investor:a", "model_bad_reply: cut off")]
+    assert len(client.get("/jobs/failed?limit=1").json()["jobs"]) == 1
+
+
+def test_failed_jobs_needs_the_token(db):
+    client = TestClient(service.create_app(db, token="s3cret"))
+    assert client.get("/jobs/failed").status_code == 401
+    assert client.get("/jobs/failed", headers={"authorization": "Bearer s3cret"}).status_code == 200
+
+
 # --- token auth and health (deploy mode) ---------------------------------------------------------------------------
 
 def test_healthz_is_always_open(db):

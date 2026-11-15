@@ -806,6 +806,13 @@ class LeadlineDb(ProfileStore):
             counts = dict(db.execute("SELECT status, COUNT(*) FROM jobs GROUP BY status").fetchall())
         return {s: counts.get(s, 0) for s in ("queued", "running", "done", "failed")}
 
+    def failed_jobs(self, limit: int = 20) -> list:
+        """The newest failed jobs with their error, newest first (to see why runs fail on a deployed service)."""
+        with self._connect(write=False) as db:
+            rows = db.execute("SELECT * FROM jobs WHERE status = 'failed' ORDER BY created_at DESC, rowid DESC "
+                              "LIMIT ?", (max(1, min(int(limit), 200)),)).fetchall()
+        return [self._job(r) for r in rows]
+
     def data_providers(self) -> set:
         """The providers market data came from ("cala", "simulator", ...): the service's live/simulated mode."""
         with self._connect(write=False) as db:
