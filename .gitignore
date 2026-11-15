@@ -108,3 +108,4 @@ leadline/runs/
 # Local demo data and session log (not deploy source)
 .e2e-tmp/
 PLAN_LOG.md
+context.md
