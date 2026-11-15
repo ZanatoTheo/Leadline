@@ -6,5 +6,3 @@ jsonschema==4.23.0
 httpx==0.28.1
 openai==2.54.0
 anthropic==2.8.0
-# The Venus engine (leadline/profiles.py imports it at startup)
-./venus

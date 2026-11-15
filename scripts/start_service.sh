@@ -4,6 +4,8 @@
 set -eu
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# Venus is in the repo, not pip-installed (pip runs before the repo is copied in): import it from venus/.
+export PYTHONPATH="$ROOT/venus${PYTHONPATH:+:$PYTHONPATH}"
 DB="${LEADLINE_DB:-/data/leadline.db}"
 if [ ! -f "$DB" ]; then
   mkdir -p "$(dirname "$DB")"

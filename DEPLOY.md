@@ -19,7 +19,7 @@ openssl rand -hex 32
 ## Step 1: Python service on Railway (do this first)
 
 1. On railway.com, go to **New Project → Deploy from GitHub repo** and pick this repo. Railpack detects Python
-   from the root `requirements.txt` (which also installs `./venus`) and starts it with `scripts/start_service.sh` (set in `railway.json`). The
+   from the root `requirements.txt` (Venus is imported from `venus/` by the start script) and starts it with `scripts/start_service.sh` (set in `railway.json`). The
    exported agent is committed at `leadline/agent/`, so no build step is needed.
 2. Under **Settings → Volumes**, add a volume with mount path `/data`.
 3. Under **Variables**, add:
