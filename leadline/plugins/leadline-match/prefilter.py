@@ -27,6 +27,7 @@ import json
 
 MAX_INPUT_CHARS = 25_000
 MAX_CANDIDATES = 200  # the leadline-match input schema's limit
+MILLIONS_BELOW = 1000  # an amount under this is in millions (no round or check is under 1,000)
 MIN_CHECK_SHARE = 0.05  # a check under 5% of the round is no lead
 
 STAGES = {"pre-seed": 0, "seed": 1, "series-a": 2, "series-b": 3, "series-c": 4, "series-d": 5, "growth": 5,
@@ -92,6 +93,12 @@ def _num(value):
     return n if n > 0 and n != float("inf") else None
 
 
+def _money(value):
+    """`_num`, with amounts under MILLIONS_BELOW read as millions: profiles mix "5.0" (EUR m) and 5000000."""
+    n = _num(value)
+    return n * 1_000_000 if n is not None and n < MILLIONS_BELOW else n
+
+
 def _stage(value):
     w = _word(value)
     w = STAGE_WORDS.get(w, w.replace(" ", "-"))
@@ -128,7 +135,7 @@ def _region_clash(s, i):
 
 def _size_clash(s, i):
     raising, check = s.get("raising") or {}, i.get("check_size") or {}
-    amount, low, high = _num(raising.get("amount")), _num(check.get("min")), _num(check.get("max"))
+    amount, low, high = (_money(raising.get("amount")), _money(check.get("min")), _money(check.get("max")))
     cur_a, cur_c = raising.get("currency"), check.get("currency")
     if amount is None or not cur_a or not cur_c or _word(cur_a) != _word(cur_c):
         return None

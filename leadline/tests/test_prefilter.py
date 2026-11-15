@@ -171,6 +171,16 @@ def test_numeric_strings_still_compare():
     assert dropped(build_input(startup(), [big], REQUEST)) == {"i1": "size_mismatch"}
 
 
+def test_amounts_in_millions_compare_with_full_amounts():
+    """Profiles mix units: a round of 5.0 (EUR m) fits a 3M-6M check; 0.5 (EUR m) is still under a 3M minimum."""
+    fund = investor(check_size={"min": 3_000_000, "max": 6_000_000, "currency": "EUR"})
+    assert dropped(build_input(startup(raising={"amount": 5.0, "currency": "EUR"}), [fund], REQUEST)) == {}
+    assert dropped(build_input(startup(raising={"amount": 0.5, "currency": "EUR"}), [fund], REQUEST)) == {
+        "i1": "size_mismatch"}
+    small = investor(check_size={"min": 1, "max": 5, "currency": "EUR"})  # also in millions
+    assert dropped(build_input(startup(raising={"amount": 4_000_000, "currency": "EUR"}), [small], REQUEST)) == {}
+
+
 def test_at_most_200_candidates_and_request_is_copied(match_plugin):
     request = dict(REQUEST)
     result = build_input(startup(), [investor(f"i{n}") for n in range(260)], request)
